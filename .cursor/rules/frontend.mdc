@@ -1,6 +1,6 @@
 ---
 description: 
-globs: *.tsx,*.astro
+globs: *.svelte,*.astro,*.csss
 alwaysApply: false
 ---
 ## Frontend
@@ -8,19 +8,15 @@ alwaysApply: false
 ### General Guidelines
 
 - Use Astro components (.astro) for static content and layout
-- Implement framework components in React only when interactivity is needed
+- Implement framework components in Svelte only when interactivity is needed
 
 ### Guidelines for Styling
 
 #### Tailwind
-
-- Use the @layer directive to organize styles into components, utilities, and base layers
-- Use arbitrary values with square brackets (e.g., w-[123px]) for precise one-off designs
-- Implement the Tailwind configuration file for customizing theme, plugins, and variants
-- Leverage the theme() function in CSS for accessing Tailwind theme values
-- Implement dark mode with the dark: variant
-- Use responsive variants (sm:, md:, lg:, etc.) for adaptive designs
-- Leverage state variants (hover:, focus-visible:, active:, etc.) for interactive elements
+- use CSS files for styles
+- in Astro and Svelte components rely on built-in component encapsulation to ensure that clases are not global
+- Support light and dark mode with color-theme and light-dark color functions
+- use grid for layouts
 
 ### Guidelines for Accessibility
 
@@ -35,3 +31,6 @@ alwaysApply: false
 - Use aria-describedby to associate descriptive text with form inputs or complex elements
 - Implement aria-current for indicating the current item in a set, navigation, or process
 - Avoid redundant ARIA that duplicates the semantics of native HTML elements
+
+### Modern features
+- make sure that used CSS and HTML features as wel ass browser API are widely available or newly available in Baseline

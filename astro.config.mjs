@@ -5,10 +5,12 @@ import sitemap from "@astrojs/sitemap";
 
 import node from "@astrojs/node";
 
+import svelte from "@astrojs/svelte";
+
 // https://astro.build/config
 export default defineConfig({
   output: "server",
-  integrations: [sitemap()],
+  integrations: [sitemap(), svelte()],
   server: { port: 3000 },
   vite: {
     plugins: [],

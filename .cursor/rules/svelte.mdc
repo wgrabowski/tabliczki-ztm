@@ -1,0 +1,37 @@
+---
+description: 
+globs: *.svelte
+alwaysApply: false
+---
+### Guidelines for React
+
+## Guidelines for Modern Svelte Components
+
+- Use `<script lang="ts">`: Write all component logic in TypeScript for type safety and maintainability.
+- Component Structure: Organize files using the single file component (SFC) pattern (`.svelte`).
+- Top-level Exports: Export only props intended to be used by parent components; prefer `export let ...` for inputs.
+- Reactivity: Use Svelte's built-in `$:` reactive assignments and stores for state and side effects.
+- Styling:
+  - Use `<style>` tags with `:global` only where necessary; otherwise, scope styles by default.
+- Accessibility:
+  - Ensure proper ARIA roles and keyboard navigation.
+  - Use semantic HTML wherever possible; only add ARIA attributes when there is no semantic equivalent.
+- Interactivity:
+  - Use the `on:event` syntax for event binding.
+  - Use Svelte's built-in `bind:` directive for two-way data binding when relevant.
+- Composition:
+  - Prefer smaller, composable components over large, monolithic ones.
+- Lifecycle: Use Svelte lifecycle hooks (`onMount`, `beforeUpdate`, `afterUpdate`, `onDestroy`) thoughtfully and only when necessary.
+- Accessibility Practices:
+  - Apply aria attributes thoughtfully and only where native HTML is insufficient.
+  - Provide focus styles and keyboard-accessible controls for interactive elements.
+- Performance:
+  - Avoid unnecessary reactivity or computations in templates.
+  - Use the `svelte:fragment` and `svelte:component` features for advanced component patterns when needed.
+- Testing and Linting:
+  - Follow feedback from linters and formatting tools.
+  - Ensure the component is covered by unit/integration tests where appropriate.
+
+Note: If integrating with frameworks/tools (e.g., Astro, Tailwind), adhere to their integration guidelines as well.
+
+
