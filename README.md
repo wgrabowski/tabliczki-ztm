@@ -1,94 +1,137 @@
-# 10x Astro Starter
+## 1. Project name
 
-A modern, opinionated starter template for building fast, accessible, and AI-friendly web applications.
+**Tabliczki ZTM (MVP)** — live stop-board dashboards for ZTM Gdańsk
 
-## Tech Stack
+![Astro](https://img.shields.io/badge/Astro-5.x-ff5d01?logo=astro&logoColor=white)
+![Svelte](https://img.shields.io/badge/Svelte-5.x-ff3e00?logo=svelte&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6?logo=typescript&logoColor=white)
+![Node](https://img.shields.io/badge/Node-22.14.0-339933?logo=node.js&logoColor=white)
 
-- [Astro](https://astro.build/) v5.5.5 - Modern web framework for building fast, content-focused websites
-- [React](https://react.dev/) v19.0.0 - UI library for building interactive components
-- [TypeScript](https://www.typescriptlang.org/) v5 - Type-safe JavaScript
-- [Tailwind CSS](https://tailwindcss.com/) v4.0.17 - Utility-first CSS framework
+## Table of contents
 
-## Prerequisites
+- [1. Project name](#1-project-name)
+- [2. Project description](#2-project-description)
+- [3. Tech stack](#3-tech-stack)
+- [4. Getting started locally](#4-getting-started-locally)
+- [5. Available scripts](#5-available-scripts)
+- [6. Project scope](#6-project-scope)
+- [7. Project status](#7-project-status)
+- [8. License](#8-license)
 
-- Node.js v22.14.0 (as specified in `.nvmrc`)
-- npm (comes with Node.js)
+## 2. Project description
 
-## Getting Started
+Tabliczki ZTM is a web app for **tracking real-time departures from multiple public transport stops in Gdańsk (ZTM Gdańsk)**. It aggregates data from the **Open Gdańsk / Otwarty Gdańsk public API** and presents it as customizable dashboards (sets of stop boards).
 
-1. Clone the repository:
+The core idea is to make it fast to monitor **several boards at once**, plus provide a **TV / high-readability view** that can run passively on a monitor/TV.
+
+- **Product requirements (PRD)**: see `.ai/prd.md`
+- **Tech stack notes**: see `.ai/tech-stack.md`
+
+## 3. Tech stack
+
+- **Frontend**
+  - **Astro 5**: routing and server-side rendering (SSR)
+  - **Svelte 5**: interactive UI (dashboard, widgets, search, management views)
+  - **TypeScript 5**
+  - **CSS**: modern, native CSS (Custom Properties, Grid, Flexbox) — no heavy UI framework
+  - **UI approach**: minimally styled native HTML elements (`<dialog>`, `<form>`, `<button>`, `<input>`)
+- **Backend (planned in MVP scope)**
+  - **Supabase**: PostgreSQL + Auth + RLS
+  - **Supabase Edge Functions (Deno)**: proxy/aggregation/caching for ZTM API
+- **Infrastructure (planned)**
+  - **Vercel** (recommended)
+  - **CI/CD**: GitHub Actions
+- **Data source**
+  - Open Gdańsk (ZTM Gdańsk): `https://ckan.multimediagdansk.pl/dataset/tristar`
+
+## 4. Getting started locally
+
+### Prerequisites
+
+- **Node.js**: `22.14.0` (from `.nvmrc`)
+- **npm**: comes with Node.js
+
+### Install & run
 
 ```bash
-git clone https://github.com/przeprogramowani/10x-astro-starter.git
-cd 10x-astro-starter
-```
-
-2. Install dependencies:
-
-```bash
+nvm use
 npm install
-```
-
-3. Run the development server:
-
-```bash
 npm run dev
 ```
 
-4. Build for production:
+Then open the dev server URL printed by Astro (typically `http://localhost:4321`).
 
-```bash
-npm run build
+### Project structure (high level)
+
+```text
+src/
+  components/     # Astro + Svelte components
+  layouts/        # Astro layouts
+  lib/            # services and helpers
+  pages/          # Astro pages (incl. pages/api for endpoints)
+  styles/         # global styles
+public/           # static public assets
 ```
 
-## Available Scripts
+## 5. Available scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run lint:fix` - Fix ESLint issues
+From `package.json`:
 
-## Project Structure
+- **`npm run dev`**: start the Astro dev server
+- **`npm run build`**: build for production
+- **`npm run preview`**: preview the production build locally
+- **`npm run astro`**: run the Astro CLI
+- **`npm run lint`**: run ESLint on the repo
+- **`npm run lint:fix`**: auto-fix ESLint issues where possible
+- **`npm run format`**: format with Prettier
 
-```md
-.
-├── src/
-│   ├── layouts/    # Astro layouts
-│   ├── pages/      # Astro pages
-│   │   └── api/    # API endpoints
-│   ├── components/ # UI components (Astro & React)
-│   └── assets/     # Static assets
-├── public/         # Public assets
-```
+## 6. Project scope
 
-## AI Development Support
+### MVP functional scope (from PRD)
 
-This project is configured with AI development tools to enhance the development experience, providing guidelines for:
+- **Authentication**
+  - Email/password sign-up and sign-in (no email verification in MVP)
+  - Session persistence (“remember me” behavior)
+- **Stop-board sets**
+  - Up to **6 sets** per user
+  - Set name up to **10 characters**
+  - Rename in a dedicated management view (save on Enter / blur)
+  - Delete sets (with their content)
+- **Dashboard**
+  - Grid of widgets: up to **6 stop boards per set**
+  - Stop search with autocomplete (name, pole number, direction)
+  - Widget shows: line, direction, arrival time (relative/absolute), accessibility icons (bike, stroller/wheelchair)
+  - Show first **6 departures**, scroll to see more
+  - Special messages ticker/marquee when API returns messages
+- **Refreshing & resiliency**
+  - Auto refresh every **60 seconds**
+  - Shared refresh progress bar at the top of the screen (under header)
+  - Silent retry after **5 seconds** on network error
+  - Error icon on widget after a persistent failure; future refreshes keep trying
+- **TV mode (public, no login)**
+  - Unique URL containing the stop identifier
+  - High readability: big stop name, clock (HH:mm), list of departures
+  - Passive view (no interactive UI)
+- **UI**
+  - Header: current time, set switcher (dashboard), links to set/account management
+  - Theme switcher: Light / Dark / System (default), not persisted
+  - Responsive layout (RWD)
 
-- Project structure
-- Coding practices
-- Frontend development
-- Styling with Tailwind
-- Accessibility best practices
-- Astro and React guidelines
+### Out of scope (explicit PRD boundaries)
 
-### Cursor IDE
+- Offline mode (requires a constant API connection)
+- Social features and sharing sets between users
+- Push notifications for disruptions
+- Map-based stop search
+- Manual reordering of boards in the grid (only add/remove)
+- Advanced filtering of lines within a single board
 
-The project includes AI rules in `.cursor/rules/` directory that help Cursor IDE understand the project structure and provide better code suggestions.
+## 7. Project status
 
-### GitHub Copilot
+**MVP: in progress.** Requirements are defined in `.ai/prd.md`; implementation may be partial and will evolve as features are built and integrated (including the planned Supabase backend).
 
-AI instructions for GitHub Copilot are available in `.github/copilot-instructions.md`
+## 8. License
 
-### Windsurf
+**MIT** (as currently stated by the repository).
 
-The `.windsurfrules` file contains AI configuration for Windsurf.
-
-## Contributing
-
-Please follow the AI guidelines and coding practices defined in the AI configuration files when contributing to this project.
-
-## License
-
-MIT
+If you want this to be explicit for GitHub tooling, add a `LICENSE` file with the MIT text.
