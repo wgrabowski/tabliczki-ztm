@@ -60,8 +60,6 @@
   - Success: `200 OK`
   - Errors: `404` or `403` when the set isn’t accessible.
 
-### Set Items
-
 - **POST /api/sets/{setId}/items**
   - Description: add a new stop card to the set; DB trigger auto-assigns positive `position`.
   - Body: `{ stop_id: integer }`
