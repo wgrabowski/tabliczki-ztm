@@ -52,30 +52,44 @@
   - Success: `204 No Content` (or `200` with payload)
   - Errors: `404` if not found/owned, `401/403`
 
-- ### Set Items
-- **GET /api/sets/{setId}/items**
-  - Description: list items in a set with metadata needed for dashboard/grid.
-  - Query params: _none_ (UI limits to 6 cards via DB trigger/constraints)
-  - Response: `{ items: [{ id, stop_id, position, added_at? }], total_count }`
-  - Success: `200 OK`
-  - Errors: `404` or `403` when the set isn’t accessible.
+### Set Items
 
-- **POST /api/sets/{setId}/items**
+- **GET /api/sets/{setId}/items** ✅ IMPLEMENTED
+  - Description: list items in a set with metadata needed for dashboard/grid.
+  - URL Params: `setId` (UUID)
+  - Query params: _none_ (UI limits to 6 cards via DB trigger/constraints)
+  - Response: `{ items: [{ id, set_id, stop_id, position, added_at? }], total_count }`
+  - Success: `200 OK`
+  - Errors:
+    - `400 Bad Request` for invalid set ID format (not a valid UUID).
+    - `401 Unauthorized` when authentication fails.
+    - `404 Not Found` if set does not exist or doesn't belong to the user.
+    - `500 Internal Server Error` for unexpected errors.
+
+- **POST /api/sets/{setId}/items** ✅ IMPLEMENTED
   - Description: add a new stop card to the set; DB trigger auto-assigns positive `position`.
+  - URL Params: `setId` (UUID)
   - Body: `{ stop_id: integer }`
   - Response: `{ items: [...], created_item: { id, stop_id, position } }`
   - Success: `201 Created`
   - Errors:
-    - `400 Bad Request` when `stop_id` missing or invalid.
+    - `400 Bad Request` for invalid set ID format or when `stop_id` missing or invalid.
+    - `401 Unauthorized` when authentication fails.
+    - `404 Not Found` if set does not exist or doesn't belong to the user.
     - `409 Conflict` if `stop_id` already exists in the set.
     - `400 Bad Request` with `MAX_ITEMS_PER_SET_EXCEEDED` when trigger rejects insert after 6 items.
-    - `401/403`
+    - `500 Internal Server Error` for unexpected errors.
 
 - **DELETE /api/sets/{setId}/items/{itemId}**
   - Description: remove an item from the set.
+  - URL Params: `setId` (UUID), `itemId` (UUID)
   - Response: `{ items: [...], deleted_item_id: itemId }`
-  - Success: `204 No Content`
-  - Errors: `404` if not owned/found.
+  - Success: `200 OK`
+  - Errors:
+    - `400 Bad Request` for invalid set ID or item ID format.
+    - `401 Unauthorized` when authentication fails.
+    - `404 Not Found` if set or item does not exist or doesn't belong to the user.
+    - `500 Internal Server Error` for unexpected errors.
 
 ## 3. Authentication and Authorization
 

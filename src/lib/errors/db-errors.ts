@@ -21,9 +21,12 @@ export interface MappedError {
  * @param error - Error object from database operation
  * @returns Mapped error with appropriate code, message, and HTTP status
  */
-export function mapDatabaseError(error: { code: string; constraint: string; message: string }): MappedError {
+export function mapDatabaseError(error: unknown): MappedError {
+  // Type guard: ensure error has expected properties
+  const err = error as { code?: string; constraint?: string; message?: string };
+
   // Set not found - explicit error from service layer
-  if (error.code === "SET_NOT_FOUND" || error.message === "SET_NOT_FOUND") {
+  if (err.code === "SET_NOT_FOUND" || err.message === "SET_NOT_FOUND") {
     return {
       code: "SET_NOT_FOUND",
       message: "Set not found or access denied",
@@ -32,7 +35,7 @@ export function mapDatabaseError(error: { code: string; constraint: string; mess
   }
 
   // PostgREST "no rows" error
-  if (error.code === "PGRST116") {
+  if (err.code === "PGRST116") {
     return {
       code: "SET_NOT_FOUND",
       message: "Set not found or access denied",
@@ -42,8 +45,8 @@ export function mapDatabaseError(error: { code: string; constraint: string; mess
 
   // Duplicate name - unique constraint violation on user_id + btrim(name)
   if (
-    error.code === "23505" &&
-    (error.constraint?.includes("btrim_name_uniq") || error.message?.includes("sets_user_id_btrim_name_uniq"))
+    err.code === "23505" &&
+    (err.constraint?.includes("btrim_name_uniq") || err.message?.includes("sets_user_id_btrim_name_uniq"))
   ) {
     return {
       code: "DUPLICATE_SET_NAME",
@@ -53,7 +56,7 @@ export function mapDatabaseError(error: { code: string; constraint: string; mess
   }
 
   // Max sets per user exceeded - trigger raises exception
-  if (error.message?.includes("MAX_SETS_PER_USER_EXCEEDED")) {
+  if (err.message?.includes("MAX_SETS_PER_USER_EXCEEDED")) {
     return {
       code: "MAX_SETS_PER_USER_EXCEEDED",
       message: "Maximum number of sets (6) reached for this user",
@@ -63,8 +66,8 @@ export function mapDatabaseError(error: { code: string; constraint: string; mess
 
   // Duplicate stop_id in set - unique constraint violation
   if (
-    error.code === "23505" &&
-    (error.constraint === "set_items_set_id_stop_id_uniq" || error.message?.includes("set_items_set_id_stop_id_uniq"))
+    err.code === "23505" &&
+    (err.constraint === "set_items_set_id_stop_id_uniq" || err.message?.includes("set_items_set_id_stop_id_uniq"))
   ) {
     return {
       code: "SET_ITEM_ALREADY_EXISTS",
@@ -74,7 +77,7 @@ export function mapDatabaseError(error: { code: string; constraint: string; mess
   }
 
   // Max items per set exceeded - trigger raises exception
-  if (error.message?.includes("MAX_ITEMS_PER_SET_EXCEEDED")) {
+  if (err.message?.includes("MAX_ITEMS_PER_SET_EXCEEDED")) {
     return {
       code: "MAX_ITEMS_PER_SET_EXCEEDED",
       message: "Maximum number of items (6) reached for this set",
@@ -83,7 +86,7 @@ export function mapDatabaseError(error: { code: string; constraint: string; mess
   }
 
   // Item not found - custom error from service layer (for future DELETE)
-  if (error.code === "ITEM_NOT_FOUND" || error.message === "ITEM_NOT_FOUND") {
+  if (err.code === "ITEM_NOT_FOUND" || err.message === "ITEM_NOT_FOUND") {
     return {
       code: "ITEM_NOT_FOUND",
       message: "Item not found or access denied",
@@ -92,7 +95,7 @@ export function mapDatabaseError(error: { code: string; constraint: string; mess
   }
 
   // RLS policy rejection (edge case - should be handled by auth check first)
-  if (error.code === "42501" || error.message?.includes("permission denied")) {
+  if (err.code === "42501" || err.message?.includes("permission denied")) {
     return {
       code: "FORBIDDEN",
       message: "Access denied",

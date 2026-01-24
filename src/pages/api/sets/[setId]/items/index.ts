@@ -4,7 +4,7 @@ import { getUserId } from "../../../../../lib/auth/get-user-id.ts";
 import { mapDatabaseError } from "../../../../../lib/errors/db-errors.ts";
 import { createSetItem, getAllSetItems, verifySetOwnership } from "../../../../../lib/services/set-items.service.ts";
 import { createSetItemCommandSchema } from "../../../../../lib/validation/sets.validation.ts";
-import type { CreateSetItemResponse, ErrorResponse } from "../../../../../types.ts";
+import type { CreateSetItemResponse, ErrorResponse, SetItemListResponse } from "../../../../../types.ts";
 
 /**
  * Disable prerendering for this API endpoint
@@ -21,6 +21,87 @@ function isValidUUID(id: string): boolean {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   return uuidRegex.test(id);
 }
+
+/**
+ * GET /api/sets/{setId}/items - Retrieve all items in a set
+ *
+ * URL Parameters:
+ * - setId: UUID of the set
+ *
+ * Returns:
+ * - 200: List of items in the set (ordered by position)
+ * - 400: Invalid input (bad UUID format)
+ * - 401: Authentication required
+ * - 404: Set not found or not owned by user
+ * - 500: Unexpected server error
+ */
+export const GET: APIRoute = async ({ params, locals }) => {
+  // 1. Extract and validate setId from URL params
+  const { setId } = params;
+
+  if (!setId || !isValidUUID(setId)) {
+    return new Response(
+      JSON.stringify({
+        code: "INVALID_INPUT",
+        message: "Invalid set ID format",
+      } as ErrorResponse),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
+  // 2. Check authentication
+  // Get user_id from session (or DEV_USER_ID in development mode)
+  // NEVER trust user_id from client input!
+  const userIdResult = await getUserId(locals.supabase);
+
+  if (!userIdResult.success) {
+    return new Response(JSON.stringify(userIdResult.error), {
+      status: userIdResult.status,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const userId = userIdResult.userId;
+
+  // 3. Retrieve set items
+  try {
+    // 3a. Verify set ownership (ensures set exists and belongs to user)
+    await verifySetOwnership(locals.supabase, userId, setId);
+
+    // 3b. Fetch all items in the set (ordered by position)
+    const items = await getAllSetItems(locals.supabase, setId);
+
+    // 4. Format and return successful response
+    const response: SetItemListResponse = {
+      items,
+      total_count: items.length,
+    };
+
+    return new Response(JSON.stringify(response), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error: unknown) {
+    // Map database errors to user-friendly responses
+    // eslint-disable-next-line no-console
+    console.error("Error retrieving set items:", { userId, setId, error });
+    const mappedError = mapDatabaseError(error);
+
+    return new Response(
+      JSON.stringify({
+        code: mappedError.code,
+        message: mappedError.message,
+      } as ErrorResponse),
+      {
+        status: mappedError.status,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+};
 
 /**
  * POST /api/sets/{setId}/items - Add a new stop to the set

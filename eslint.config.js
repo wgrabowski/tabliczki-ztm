@@ -31,7 +31,6 @@ const jsxA11yConfig = tseslint.config({
   },
 });
 
-
 export default tseslint.config(
   includeIgnoreFile(gitignorePath),
   baseConfig,
