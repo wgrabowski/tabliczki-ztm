@@ -75,8 +75,8 @@ dashboard-set.astro (strona Astro - SSR guard, initial data fetch)
 - Fetch początkowych danych:
   - `GET /api/sets/{setId}/items` - lista przystanków w zestawie
   - `GET /api/ztm/sets/{setId}/stops` - metadane przystanków (nazwy, kody)
-  - `GET /api/ztm/sets/{setId}/departures` - początkowe dane odjazdów
   - **UWAGA:** `GET /api/ztm/stops` NIE jest fetchowany w SSR - dane są ładowane client-side przez `stopsStore` (lazy loading w tle)
+  - **UWAGA:** `GET /api/ztm/sets/{setId}/departures` NIE jest fetchowany w SSR - dane są ładowane client-side w `onMount()` bez blokowania renderowania
 - Renderowanie `SetDashboardView.svelte` z danymi jako props
 
 **Obsługiwane interakcje:** Brak (tylko SSR)
@@ -141,7 +141,8 @@ interface SetDashboardViewProps {
   setId: string;
   initialItems: SetItemDTO[];
   initialStops: ZtmSetStopDTO[];
-  initialDepartures: GetZtmSetDeparturesResponse;
+  sets: SetDTO[]; // wszystkie zestawy użytkownika (do SetSelect)
+  // initialDepartures NIE jest przekazywany - ładowany w onMount() bez blokowania renderowania
   // allStops NIE jest przekazywany jako props - ładowany przez stopsStore
 }
 ```
@@ -150,17 +151,76 @@ interface SetDashboardViewProps {
 
 ```svelte
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { stopsStore } from '$lib/stores/stops.store';
 
   // ... props
 
-  onMount(() => {
-    // Rozpocznij ładowanie przystanków W TLE
-    // Widok renderuje się natychmiast z initialDepartures
-    // Dane będą gotowe gdy użytkownik kliknie "Dodaj przystanek"
+  let refreshIntervalId: number | null = null;
+  let visibilityChangeHandler: (() => void) | null = null;
+
+  onMount(async () => {
+    // 1. Rozpocznij ładowanie przystanków W TLE (dla AddStopDialog)
     stopsStore.load();
+
+    // 2. Załaduj początkowe dane odjazdów BEZ CZEKANIA (nie blokuje renderowania)
+    // Widok renderuje się natychmiast z pustymi danymi odjazdów
+    // Po załadowaniu danych - karty zostaną automatycznie zaktualizowane
+    loadDeparturesAndStartCycle();
+
+    // 3. Obsługa Page Visibility API - pauzowanie cyklu gdy karta w tle
+    visibilityChangeHandler = handleVisibilityChange;
+    document.addEventListener('visibilitychange', visibilityChangeHandler);
   });
+
+  onDestroy(() => {
+    // Czyszczenie interwału i listenera przy unmount
+    if (refreshIntervalId !== null) {
+      clearInterval(refreshIntervalId);
+    }
+    if (visibilityChangeHandler) {
+      document.removeEventListener('visibilitychange', visibilityChangeHandler);
+    }
+  });
+
+  async function loadDeparturesAndStartCycle() {
+    // Załaduj dane odjazdów
+    await refreshDepartures();
+
+    // Rozpocznij cykl odświeżania DOPIERO po pierwszym udanym pobraniu
+    if (state.departuresData !== null) {
+      startRefreshCycle();
+    }
+  }
+
+  function startRefreshCycle() {
+    // Uruchom interwał odliczający co 1s
+    refreshIntervalId = setInterval(() => {
+      if (state.secondsLeft > 0) {
+        state.secondsLeft--;
+      } else {
+        // Osiągnięto 0 - odśwież dane
+        refreshDepartures();
+      }
+    }, 1000);
+  }
+
+  function stopRefreshCycle() {
+    if (refreshIntervalId !== null) {
+      clearInterval(refreshIntervalId);
+      refreshIntervalId = null;
+    }
+  }
+
+  function handleVisibilityChange() {
+    if (document.hidden) {
+      // Karta w tle - zatrzymaj cykl odświeżania
+      stopRefreshCycle();
+    } else {
+      // Karta z powrotem widoczna - pobierz najnowsze dane i restart cyklu
+      loadDeparturesAndStartCycle();
+    }
+  }
 </script>
 ```
 
@@ -202,7 +262,7 @@ interface RefreshProgressBarProps {
 
 ### 4.4 `StopCard.svelte`
 
-**Opis:** Karta pojedynczego przystanku wyświetlająca nazwę, kod, listę odjazdów (paginacja po 6), ticker z komunikatami specjalnymi oraz akcje (TV, usuń). Obsługuje wyświetlanie stanu błędu per karta po eskalacji błędów globalnych.
+**Opis:** Karta pojedynczego przystanku wyświetlająca nazwę, kod, listę odjazdów (paginacja po 6), ticker z komunikatami specjalnymi oraz akcje (TV, usuń). Obsługuje wyświetlanie stanu błędu per karta po eskalacji błędów globalnych oraz loading state podczas ładowania danych.
 
 **Główne elementy:**
 
@@ -211,10 +271,14 @@ interface RefreshProgressBarProps {
   - Tytuł: nazwa przystanku + kod (np. "Dworzec Główny (1001)")
   - Slot actions: `IconButton` TV
   - Slot deleteAction: `IconButton` usuń
+- Content (zależny od stanu):
+  - **Loading state** (gdy `departures === null` i brak błędu): skeleton z komunikatem "Ładowanie odjazdów..."
+  - **Error state** (gdy `error !== null`): komunikat błędu per karta
+  - **Global error state** (gdy `hasGlobalError === true`): komunikat błędu globalnego
+  - **Ready state**: `DeparturesList` + `Ticker`
 - `DeparturesList` - kontener z paginacją (6 odjazdów widocznych, przyciski góra/dół w stopce)
 - `DepartureItem` (6 visible) - pojedynczy odjazd
 - `Ticker` - marquee dla komunikatów specjalnych (jeśli istnieją)
-- Stan błędu (overlay lub komunikat) - wyświetlany gdy globalny errorCount >= 3
 
 **Obsługiwane interakcje:**
 
@@ -392,7 +456,7 @@ interface AddStopButtonProps {
 
 - `Dialog` (komponent bazowy) z tytułem "Dodaj przystanek"
 - **3 stany w zależności od `$stopsStore.status`:**
-  - **`loading`**: Skeleton/spinner z komunikatem "Ładowanie przystanków..."
+  - **`loading`**: Skeleton z komunikatem "Ładowanie przystanków..."
   - **`ready`**: Komponent `Autocomplete` z pełną listą przystanków
   - **`error`**: Komunikat błędu + przycisk "Spróbuj ponownie" (wywołujący `stopsStore.retry()`)
 - Przyciski: "Dodaj" (submit, widoczny tylko w stanie `ready`) + "Anuluj" (close)
@@ -792,9 +856,9 @@ export interface SetDashboardInitialData {
   setId: string;
   items: SetItemDTO[];
   stops: ZtmSetStopDTO[];
-  departures: GetZtmSetDeparturesResponse;
-  // allStops NIE jest przekazywany - ładowany przez stopsStore client-side
   sets: SetDTO[]; // wszystkie zestawy użytkownika (do SetSelect)
+  // departures NIE są przekazywane - ładowane w onMount() bez blokowania renderowania
+  // allStops NIE jest przekazywany - ładowany przez stopsStore client-side
 }
 
 /**
@@ -802,10 +866,11 @@ export interface SetDashboardInitialData {
  */
 export interface SetDashboardState {
   items: SetItemDTO[];
-  departuresData: GetZtmSetDeparturesResponse | null;
+  departuresData: GetZtmSetDeparturesResponse | null; // null do czasu pierwszego załadowania
   stopsData: ZtmSetStopDTO[];
   errorCount: number; // 0-3, licznik kolejnych błędów odświeżania
   isRefreshing: boolean; // true podczas fetch
+  isInitialLoad: boolean; // true przed pierwszym załadowaniem danych odjazdów
   secondsLeft: number; // 0-60, odliczanie do następnego odświeżenia
   isCycleStopped: boolean; // true po 3 błędach (zatrzymanie cyklu)
   isAddDialogOpen: boolean;
@@ -845,10 +910,11 @@ Stan specyficzny dla widoku, zarządzany przez Svelte w komponencie głównym:
 ```typescript
 let state: SetDashboardState = {
   items: initialItems,
-  departuresData: initialDepartures,
+  departuresData: null, // Dane odjazdów ładowane w onMount()
   stopsData: initialStops,
   errorCount: 0,
   isRefreshing: false,
+  isInitialLoad: true, // true do pierwszego załadowania
   secondsLeft: 60,
   isCycleStopped: false,
   isAddDialogOpen: false,
@@ -943,7 +1009,7 @@ export const stopsStore = createStopsStore();
 1. **Dashboard renderuje się NATYCHMIAST** po zalogowaniu (bez czekania na stops)
 2. **Preload w tle:** `SetDashboardView.svelte` wywołuje `stopsStore.load()` w `onMount()` — NIE blokuje renderowania
 3. **Dialog obsługuje 3 stany:**
-   - `loading`: skeleton/spinner w dialogu z komunikatem "Ładowanie przystanków..."
+   - `loading`: skeleton w dialogu z komunikatem "Ładowanie przystanków..."
    - `ready`: komponent `Autocomplete` z pełną listą przystanków
    - `error`: komunikat błędu + przycisk "Spróbuj ponownie" (wywołujący `stopsStore.retry()`)
 4. **Użytkownik nigdy nie czeka** — może przeglądać dashboard podczas ładowania przystanków w tle
@@ -975,7 +1041,7 @@ export const stopsStore = createStopsStore();
               ▼                         ▼
      ┌─────────────────────────────────────┐
      │ Dialog sprawdza stan:               │
-     │ - LOADING → spinner                 │
+     │ - LOADING → skeleton                │
      │ - READY → autocomplete              │
      │ - ERROR → retry button              │
      └─────────────────────────────────────┘
@@ -986,35 +1052,54 @@ export const stopsStore = createStopsStore();
 - **SessionStorage cache z TTL (24h):** Dla wielokrotnych wizyt w tej samej sesji przeglądarki
 - **Server-side search endpoint:** `GET /api/ztm/search/stops?q={query}` jako fallback dla bardzo dużych list (>1000 przystanków)
 
-### 6.3 Logika cyklu odświeżania (60s)
+### 6.3 Logika cyklu odświeżania (60s) + Page Visibility API
 
 Cykl odświeżania zarządzany jest w `SetDashboardView.svelte` przez:
 
-1. **Interwał odliczania** (`setInterval` co 1s):
+1. **Ładowanie początkowe** (w `onMount()`):
+   - Wywołanie `loadDeparturesAndStartCycle()` BEZ czekania (async, nie blokuje renderowania)
+   - Widok renderuje się natychmiast z `departuresData: null`
+   - Po załadowaniu danych → automatyczna aktualizacja UI
+   - Cykl odświeżania startuje DOPIERO po pierwszym udanym pobraniu danych
+
+2. **Interwał odliczania** (`setInterval` co 1s):
+   - Uruchamiany DOPIERO po pierwszym udanym załadowaniu danych
    - Dekrementacja `state.secondsLeft` od 60 do 0
    - Po osiągnięciu 0 → trigger funkcji `refreshDepartures()`
    - Jeśli `state.isCycleStopped === true` → interwał zatrzymany
+   - Interwał jest czyszczony i restartowany przy zmianach widoczności karty
 
-2. **Funkcja `refreshDepartures()`**:
+3. **Funkcja `refreshDepartures()`**:
    - Ustawia `state.isRefreshing = true`
    - Wykonuje `GET /api/ztm/sets/{setId}/departures`
    - Sukces:
      - Aktualizuje `state.departuresData`
+     - Ustawia `state.isInitialLoad = false` (jeśli było pierwsze ładowanie)
      - Resetuje `state.errorCount = 0`
      - Resetuje `state.secondsLeft = 60`
      - Ustawia `state.isRefreshing = false`
    - Błąd:
      - Inkrementuje `state.errorCount++`
      - Jeśli `errorCount < 3`: kontynuacja cyklu (ostrzeżenie)
-     - Jeśli `errorCount >= 3`: zatrzymanie cyklu (`state.isCycleStopped = true`)
+     - Jeśli `errorCount >= 3`: zatrzymanie cyklu (`state.isCycleStopped = true`, `stopRefreshCycle()`)
      - Ustawia `state.isRefreshing = false`
 
-3. **Obsługa błędów z eskalacją**:
+4. **Page Visibility API** (obsługa karty w tle):
+   - Event listener na `document.visibilitychange`
+   - **Gdy karta staje się niewidoczna** (`document.hidden === true`):
+     - Wywołanie `stopRefreshCycle()` → czyszczenie interwału
+     - Cykl odświeżania zatrzymany (oszczędzanie zasobów i requestów)
+   - **Gdy karta wraca do widoczności** (`document.hidden === false`):
+     - Wywołanie `loadDeparturesAndStartCycle()` → natychmiastowe pobranie najnowszych danych
+     - Restart cyklu odświeżania od nowa (z pełnych 60s)
+   - Listener jest czyszczony w `onDestroy()`
+
+5. **Obsługa błędów z eskalacją**:
    - **1 błąd**: warning toast "Problem z odświeżeniem danych", kontynuacja cyklu
    - **2 błędy**: warning toast z mocniejszym komunikatem, kontynuacja cyklu
    - **3 błędy**: error toast "Nie można pobrać danych", zatrzymanie cyklu, wyświetlenie CTA "Spróbuj ponownie"
 
-4. **CTA "Spróbuj ponownie"** (po 3 błędach):
+6. **CTA "Spróbuj ponownie"** (po 3 błędach):
    - Przycisk widoczny zamiast paska postępu
    - Kliknięcie → twardy reload strony (`window.location.reload()`)
 
@@ -1191,9 +1276,11 @@ Widok integruje się z następującymi endpointami:
 
 **Kiedy:**
 
-- SSR (initial data)
-- Co 60s (cykl odświeżania)
+- **Client-side w `onMount()`** (pierwsze załadowanie, BEZ czekania - nie blokuje renderowania)
+- Co 60s (cykl odświeżania, tylko gdy karta widoczna)
 - Po dodaniu nowego przystanku (natychmiastowe odświeżenie)
+- Po powrocie karty do widoczności (natychmiastowe odświeżenie po przejściu z tła)
+- **UWAGA:** NIE jest fetchowany w SSR
 
 **Request:**
 
@@ -1318,17 +1405,22 @@ Każdy element `results`:
    - Guard sprawdza sesję → jeśli brak, redirect na `/login`
    - Walidacja UUID `setId`
    - Weryfikacja własności zestawu
-   - Fetch danych początkowych:
+   - Fetch danych początkowych (MINIMUM potrzebne do renderowania):
      - `GET /api/sets/{setId}/items`
      - `GET /api/ztm/sets/{setId}/stops`
-     - `GET /api/ztm/sets/{setId}/departures`
-     - `GET /api/ztm/stops` (do wyszukiwarki)
      - `GET /api/sets` (lista zestawów do SetSelect)
-2. Renderowanie `SetDashboardView.svelte` z danymi jako props
+     - **UWAGA:** `GET /api/ztm/sets/{setId}/departures` NIE jest fetchowany w SSR
+     - **UWAGA:** `GET /api/ztm/stops` NIE jest fetchowany w SSR
+2. Renderowanie `SetDashboardView.svelte` z danymi jako props (bez danych odjazdów)
 3. Client-side (Svelte):
-   - Inicjalizacja stanu lokalnego z props
-   - Uruchomienie cyklu odświeżania (interval co 1s)
-   - Wyświetlenie kart przystanków z danymi odjazdów
+   - Inicjalizacja stanu lokalnego z props (`departuresData: null`)
+   - `onMount()`:
+     - Rozpoczęcie ładowania przystanków W TLE (`stopsStore.load()`)
+     - Rozpoczęcie ładowania danych odjazdów BEZ CZEKANIA (`loadDeparturesAndStartCycle()`)
+     - Rejestracja listenera `visibilitychange` dla Page Visibility API
+   - Wyświetlenie kart przystanków (początkowo bez danych odjazdów, skeleton/loading state)
+   - Po załadowaniu danych odjazdów → automatyczna aktualizacja UI
+   - Po pierwszym udanym załadowaniu → start cyklu odświeżania (interval co 1s)
 
 **Walidacja:** UUID `setId`, własność zestawu
 
@@ -1336,22 +1428,38 @@ Każdy element `results`:
 
 ---
 
-### 8.2 Automatyczne odświeżanie danych (60s)
+### 8.2 Automatyczne odświeżanie danych (60s) + obsługa widoczności karty
 
-**Akcja:** Automatyczne odliczanie i fetch co 60 sekund
+**Akcja:** Automatyczne odliczanie i fetch co 60 sekund (tylko gdy karta widoczna)
 
 **Workflow:**
 
-1. `setInterval` co 1s → dekrementacja `state.secondsLeft`
-2. `RefreshProgressBar` wyświetla aktualną wartość (60 → 0)
-3. Po osiągnięciu 0:
-   - Wywołanie `refreshDepartures()`
-   - Ustawienie `state.isRefreshing = true` → pasek w trybie indeterminate
-   - `GET /api/ztm/sets/{setId}/departures`
-   - Sukces → aktualizacja `state.departuresData`, reset `errorCount`, reset `secondsLeft`
-   - Błąd → inkrementacja `errorCount`, eskalacja (1-2-3)
-4. `state.isRefreshing = false` → pasek wraca do trybu determinate
-5. Cykl kontynuowany (jeśli `errorCount < 3`)
+1. **Pierwsze ładowanie** (w `onMount()`):
+   - Wywołanie `loadDeparturesAndStartCycle()` → fetch bez czekania
+   - Widok renderuje się natychmiast (karty z loading state)
+   - Po załadowaniu danych → aktualizacja UI
+   - Start cyklu odświeżania DOPIERO po pierwszym udanym pobraniu
+
+2. **Cykl odświeżania** (uruchomiony po pierwszym załadowaniu):
+   - `setInterval` co 1s → dekrementacja `state.secondsLeft` (60 → 0)
+   - `RefreshProgressBar` wyświetla aktualną wartość
+   - Po osiągnięciu 0:
+     - Wywołanie `refreshDepartures()`
+     - Ustawienie `state.isRefreshing = true` → pasek w trybie indeterminate
+     - `GET /api/ztm/sets/{setId}/departures`
+     - Sukces → aktualizacja `state.departuresData`, reset `errorCount`, reset `secondsLeft`
+     - Błąd → inkrementacja `errorCount`, eskalacja (1-2-3)
+   - `state.isRefreshing = false` → pasek wraca do trybu determinate
+   - Cykl kontynuowany (jeśli `errorCount < 3` i karta widoczna)
+
+3. **Page Visibility API** (pauzowanie w tle):
+   - **Karta przechodzi w tło** (`document.hidden === true`):
+     - Wywołanie `stopRefreshCycle()` → czyszczenie interwału
+     - Cykl odświeżania zatrzymany (oszczędzanie zasobów)
+   - **Karta wraca do widoczności** (`document.hidden === false`):
+     - Wywołanie `loadDeparturesAndStartCycle()` → natychmiastowe pobranie najnowszych danych
+     - Restart cyklu od 60s
+     - Reset `errorCount` (czysty start po powrocie)
 
 **Walidacja:** Brak
 
@@ -1368,7 +1476,7 @@ Każdy element `results`:
 1. Otwarcie `AddStopDialog` (`state.isAddDialogOpen = true`)
 2. Dialog sprawdza `$stopsStore.status`:
    - Jeśli `idle` lub `error` → wywołanie `stopsStore.load()`
-   - Jeśli `loading` → wyświetlenie spinnera "Ładowanie przystanków..."
+   - Jeśli `loading` → wyświetlenie skeletona "Ładowanie przystanków..."
    - Jeśli `ready` → wyświetlenie komponentu `Autocomplete`
    - Jeśli `error` → wyświetlenie przycisku "Spróbuj ponownie" (wywołującego `stopsStore.retry()`)
 3. Użytkownik wpisuje w `Autocomplete` → client-side filtrowanie wyników (debouncing 300ms, min. 2 znaki, max 10 wyników)
@@ -1738,19 +1846,20 @@ Każdy element `results`:
 - Implementacja SSR guard (sprawdzenie sesji)
 - Walidacja parametru `setId` (UUID)
 - Weryfikacja własności zestawu (`verifySetOwnership`)
-- Fetch danych początkowych:
+- Fetch danych początkowych (MINIMUM potrzebne do renderowania widoku):
   - `GET /api/sets/{setId}/items`
   - `GET /api/ztm/sets/{setId}/stops`
-  - `GET /api/ztm/sets/{setId}/departures`
-  - `GET /api/ztm/stops`
   - `GET /api/sets` (lista zestawów)
+  - **UWAGA:** `GET /api/ztm/sets/{setId}/departures` NIE jest fetchowany - ładowany client-side w onMount()
+  - **UWAGA:** `GET /api/ztm/stops` NIE jest fetchowany - ładowany przez stopsStore client-side
 - Obsługa błędów (redirect na `/login`, `/dashboard`, lub strona błędu)
-- Renderowanie `SetDashboardView.svelte` z danymi jako props
+- Renderowanie `SetDashboardView.svelte` z danymi jako props (bez departures)
 - Layout: `AppLayout` z konfiguracją nagłówka
 
 **Weryfikacja:**
 
-- Otwarcie `/dashboard/{validSetId}` → strona się renderuje z danymi
+- Otwarcie `/dashboard/{validSetId}` → strona się renderuje natychmiast (bez czekania na departures)
+- Karty przystanków pokazują loading state, a po chwili załadowane dane odjazdów
 - Otwarcie `/dashboard/{invalidSetId}` → redirect na błąd
 - Brak sesji → redirect na `/login`
 
@@ -1762,24 +1871,38 @@ Każdy element `results`:
 
 **Szczegóły:**
 
-- Props zgodnie z `SetDashboardInitialData`
-- Inicjalizacja stanu lokalnego `SetDashboardState`
-- Lifecycle: `onMount` → uruchomienie cyklu odświeżania (interval)
-- Lifecycle: `onDestroy` → czyszczenie interwału
-- Funkcja `refreshDepartures()` → fetch + eskalacja błędów
+- Props zgodnie z `SetDashboardInitialData` (BEZ `initialDepartures`)
+- Inicjalizacja stanu lokalnego `SetDashboardState` z `departuresData: null`
+- Lifecycle: `onMount`:
+  - Rozpoczęcie ładowania przystanków w tle (`stopsStore.load()`)
+  - Rozpoczęcie ładowania danych odjazdów BEZ CZEKANIA (`loadDeparturesAndStartCycle()`)
+  - Rejestracja listenera `visibilitychange` dla Page Visibility API
+- Lifecycle: `onDestroy`:
+  - Czyszczenie interwału odświeżania
+  - Usunięcie listenera `visibilitychange`
+- Funkcje:
+  - `loadDeparturesAndStartCycle()` → fetch departures + start cyklu po sukcesie
+  - `refreshDepartures()` → fetch + eskalacja błędów
+  - `startRefreshCycle()` → uruchomienie interwału (1s)
+  - `stopRefreshCycle()` → czyszczenie interwału
+  - `handleVisibilityChange()` → obsługa zmian widoczności karty
 - Renderowanie struktury:
   - `RefreshProgressBar` (lub CTA "Spróbuj ponownie" jeśli `isCycleStopped`)
   - `DashboardGrid`
-  - `StopCard` dla każdego item (loop)
+  - `StopCard` dla każdego item (loop) - z obsługą loading state gdy `departuresData === null`
   - `AddStopButton` (jeśli `items.length < 6`)
   - `AddStopDialog`
   - `ConfirmDialog`
 
 **Weryfikacja:**
 
-- Komponent renderuje się z danymi początkowymi
-- Pasek postępu odlicza od 60 do 0
+- Komponent renderuje się NATYCHMIAST (bez czekania na departures)
+- Karty przystanków pokazują loading state
+- Po chwili dane odjazdów się ładują i karty aktualizują
+- Pasek postępu zaczyna odliczać DOPIERO po pierwszym załadowaniu danych
 - Po 60s następuje fetch (sprawdzić w Network tab)
+- Przejście karty w tło → zatrzymanie cyklu (Network tab: brak requestów)
+- Powrót do widoczności → natychmiastowy fetch + restart cyklu
 
 ---
 
@@ -1819,17 +1942,24 @@ Każdy element `results`:
   - Tytuł: `{stop.stopName} ({stop.stopCode})`
   - Slot actions: `IconButton` TV (icon: "tv", onClick → `onOpenTv(stopId)`)
   - Slot deleteAction: `IconButton` usuń (icon: "delete", onClick → `onDelete(itemId)`)
-- Content:
-  - Jeśli `error !== null` → komunikat błędu per karta
-  - Jeśli `hasGlobalError === true` → komunikat błędu globalnego
-  - W przeciwnym razie → `DeparturesList` (departures)
-  - Na dole (jeśli są komunikaty): `Ticker` (placeholder na przyszłość)
+- Content (warunkowo):
+  - **Jeśli `departures === null` i `error === null`** → loading state:
+    - Skeleton (pulsująca animacja pokazująca kształt listy odjazdów - 6 wierszy)
+    - Komunikat: "Ładowanie odjazdów..."
+  - **Jeśli `error !== null`** → komunikat błędu per karta
+  - **Jeśli `hasGlobalError === true`** → komunikat błędu globalnego
+  - **W przeciwnym razie** (ready state):
+    - `DeparturesList` (departures)
+    - Na dole (jeśli są komunikaty): `Ticker` (placeholder na przyszłość)
 
 **Weryfikacja:**
 
-- Karta renderuje się z nazwą i kodem przystanku
-- Lista odjazdów jest widoczna (paginacja działa - przyciski góra/dół)
+- Karta renderuje się NATYCHMIAST z loading state (skeleton)
+- Skeleton pokazuje kształt listy odjazdów (6 wierszy z pulsującą animacją)
+- Po załadowaniu danych → lista odjazdów jest widoczna
+- Paginacja działa (przyciski góra/dół)
 - Ikony TV i usuń są klikalne
+- Loading state znika po załadowaniu danych
 
 ---
 
@@ -1985,7 +2115,7 @@ Każdy element `results`:
 - Tytuł: "Dodaj przystanek"
 - Content zależny od `stopsState.status`:
   - **`loading`**:
-    - Spinner (ikona Material Symbols: `progress_activity` z animacją)
+    - Skeleton (pulsująca animacja pokazująca kształt autocomplete z listą)
     - Tekst: "Ładowanie przystanków..."
   - **`error`**:
     - Komunikat: "Nie udało się załadować listy przystanków."
@@ -2017,7 +2147,7 @@ Każdy element `results`:
 **Weryfikacja:**
 
 - Dialog otwiera się po kliknięciu przycisku "Dodaj przystanek"
-- Stan `loading` pokazuje spinner z komunikatem
+- Stan `loading` pokazuje skeleton z komunikatem
 - Stan `error` pokazuje przycisk "Spróbuj ponownie", który działa (ponowne ładowanie)
 - Stan `ready` pokazuje autocomplete z działającą wyszukiwarką
 - Wyszukiwarka filtruje wyniki client-side (debouncing 300ms, min. 2 znaki)
@@ -2125,36 +2255,65 @@ Każdy element `results`:
 
 ---
 
-### Krok 15: Implementacja logiki cyklu odświeżania
+### Krok 15: Implementacja logiki cyklu odświeżania + Page Visibility API
 
-**Zadanie:** Dodać logikę cyklu odświeżania (60s) w `SetDashboardView.svelte`
+**Zadanie:** Dodać logikę cyklu odświeżania (60s) i obsługę widoczności karty w `SetDashboardView.svelte`
 
 **Szczegóły:**
 
-- `onMount`:
+- **`onMount`**:
+  - Wywołanie `loadDeparturesAndStartCycle()` BEZ await (async, nie blokuje renderowania)
+  - Rejestracja listenera `document.addEventListener('visibilitychange', handleVisibilityChange)`
+
+- **Funkcja `loadDeparturesAndStartCycle()`**:
+  - `await refreshDepartures()` → załadowanie danych odjazdów
+  - Jeśli sukces (`state.departuresData !== null`) → wywołanie `startRefreshCycle()`
+  - Jeśli błąd → obsługa w `refreshDepartures()` (eskalacja)
+
+- **Funkcja `startRefreshCycle()`**:
   - Uruchomienie `setInterval` co 1s
   - Dekrementacja `state.secondsLeft` od 60 do 0
-  - Po osiągnięciu 0 → wywołanie `refreshDepartures()`
-- Funkcja `refreshDepartures()`:
+  - Po osiągnięciu 0 → wywołanie `refreshDepartures()`, reset `secondsLeft = 60`
+  - Zapisanie `refreshIntervalId` do czyszczenia później
+
+- **Funkcja `stopRefreshCycle()`**:
+  - `clearInterval(refreshIntervalId)`
+  - Ustawienie `refreshIntervalId = null`
+
+- **Funkcja `refreshDepartures()`**:
   - Ustawienie `state.isRefreshing = true`
   - Fetch `GET /api/ztm/sets/{setId}/departures`
   - Sukces:
     - Aktualizacja `state.departuresData`
+    - Ustawienie `state.isInitialLoad = false` (jeśli było pierwsze ładowanie)
     - Reset `state.errorCount = 0`
     - Reset `state.secondsLeft = 60`
   - Błąd:
     - Inkrementacja `state.errorCount++`
     - Eskalacja (toast warning/error)
-    - Jeśli `errorCount >= 3` → `state.isCycleStopped = true`, clear interval
+    - Jeśli `errorCount >= 3` → `state.isCycleStopped = true`, wywołanie `stopRefreshCycle()`
   - Ustawienie `state.isRefreshing = false`
-- `onDestroy`:
-  - Czyszczenie interwału (`clearInterval`)
+
+- **Funkcja `handleVisibilityChange()`**:
+  - **Jeśli `document.hidden === true`** (karta w tle):
+    - Wywołanie `stopRefreshCycle()`
+  - **Jeśli `document.hidden === false`** (karta widoczna):
+    - Wywołanie `loadDeparturesAndStartCycle()` → natychmiastowe pobranie danych + restart cyklu
+    - Opcjonalnie: reset `state.errorCount = 0` (czysty start)
+
+- **`onDestroy`**:
+  - Czyszczenie interwału (`stopRefreshCycle()`)
+  - Usunięcie listenera `document.removeEventListener('visibilitychange', handleVisibilityChange)`
 
 **Weryfikacja:**
 
+- Pierwsze ładowanie danych następuje w `onMount()` (Network tab: request po zmontowaniu)
+- Cykl odświeżania startuje DOPIERO po pierwszym udanym załadowaniu
 - Po 60s następuje automatyczne odświeżenie (sprawdzić w Network tab)
 - Po błędzie następuje eskalacja (1-2-3)
 - Po 3 błędach cykl zatrzymuje się, pojawia się CTA "Spróbuj ponownie"
+- **Przejście karty w tło** → cykl zatrzymany (Network tab: brak requestów podczas gdy karta w tle)
+- **Powrót do widoczności** → natychmiastowy fetch + restart cyklu od 60s
 
 ---
 
@@ -2234,14 +2393,24 @@ Każdy element `results`:
 **Scenariusze testowe:**
 
 1. **Inicjalizacja widoku:**
-   - Otwarcie `/dashboard/{setId}` → widok się renderuje z danymi
-   - Karty przystanków wyświetlają odjazdy
-   - Pasek postępu odlicza od 60
+   - Otwarcie `/dashboard/{setId}` → widok się renderuje NATYCHMIAST (bez czekania na departures)
+   - Karty przystanków wyświetlają loading state (skeleton - 6 wierszy z pulsującą animacją)
+   - Po chwili dane odjazdów się ładują i karty aktualizują
+   - Pasek postępu zaczyna odliczać DOPIERO po pierwszym załadowaniu danych
 
 2. **Automatyczne odświeżanie:**
    - Po 60s następuje fetch
    - Dane odjazdów aktualizują się
    - Pasek resetuje się do 60
+   - Cykl kontynuowany
+
+2a. **Page Visibility API - karta w tle:**
+
+- Przełączenie na inną kartę (tab) w przeglądarce
+- Sprawdzenie w DevTools Network tab: brak requestów do `/api/ztm/sets/{setId}/departures` podczas gdy karta w tle
+- Powrót do karty → natychmiastowy fetch + restart cyklu od 60s
+- Sprawdzenie: nowe dane odjazdów zostały załadowane
+- Pasek postępu resetuje się do 60 i kontynuuje odliczanie
 
 3. **Dodawanie przystanku:**
    - Kliknięcie "Dodaj przystanek" → dialog
