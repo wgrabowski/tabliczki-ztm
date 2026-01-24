@@ -9,6 +9,7 @@
    * - Accessibility icons (wheelchair, bike) - TODO when API supports it
    */
   export let departure: ZtmDepartureDTO;
+  export let variant: "default" | "tv" = "default";
 
   // Calculate relative time from estimatedTime
   function getRelativeTime(estimatedTime: string): string {
@@ -35,7 +36,7 @@
   $: delayMinutes = hasDelay ? Math.floor(departure.delayInSeconds! / 60) : 0;
 </script>
 
-<tr class="departure-item">
+<tr class="departure-item" class:tv-variant={variant === "tv"}>
   <!-- Route Number -->
   <td class="departure-route">
     {departure.routeShortName || "?"}
@@ -67,10 +68,6 @@
 </tr>
 
 <style>
-  .departure-item {
-    
-  }
-
   .departure-item td {
     padding: var(--theme--spacing);
     color: var(--theme--accent-color);
@@ -91,10 +88,6 @@
     white-space: nowrap;
   }
 
-  .departure-time.realtime .time-display {
-    
-  }
-
   .delay-badge {
     font-size: 0.75rem;
     padding: calc(var(--theme--spacing) / 2);
@@ -102,6 +95,30 @@
     color: var(--theme--bg-color);
     border: 1px solid var(--theme--negative);
     white-space: nowrap;
+  }
+
+  /* TV Variant - Larger fonts */
+  .tv-variant td {
+    padding: calc(var(--theme--spacing) * 2);
+    font-size: 1.75rem;
+    border-bottom: 2px solid var(--theme--accent-color-dim);
+  }
+
+  .tv-variant .delay-badge {
+    font-size: 1.25rem;
+    padding: var(--theme--spacing);
+  }
+
+  /* Large screen optimizations for TV */
+  @media (min-width: 1200px) {
+    .tv-variant td {
+      font-size: 2.25rem;
+      padding: calc(var(--theme--spacing) * 3);
+    }
+
+    .tv-variant .delay-badge {
+      font-size: 1.5rem;
+    }
   }
 
   /* Accessibility icons - will be used when API supports them */

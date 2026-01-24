@@ -1,0 +1,30 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import TvView from "../../components/TvView.svelte";
+
+/**
+ * TV View Page - Public fullscreen departure board for a single stop
+ * Route: /tv/{stopId}
+ * Public access (no authentication required)
+ */
+
+export const prerender = false;
+
+// Validate stopId parameter
+const { stopId } = Astro.params;
+
+// Check if stopId is a valid number
+const stopIdNum = Number(stopId);
+
+if (!stopId || isNaN(stopIdNum) || stopIdNum <= 0) {
+  return Astro.redirect("/404");
+}
+
+// Set page metadata
+const title = `Tablica przystanku ${stopIdNum} | Tabliczki ZTM`;
+const description = `Publiczna tablica odjazdów dla przystanku ${stopIdNum}`;
+---
+
+<Layout title={title} description={description}>
+  <TvView stopId={stopIdNum} client:load />
+</Layout>

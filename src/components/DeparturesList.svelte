@@ -6,18 +6,25 @@
   /**
    * Departures list with pagination (6 visible items per page)
    * Navigation with up/down buttons in footer
+   * TV variant: no pagination, larger fonts
    */
   export let departures: ZtmDepartureDTO[];
+  export let variant: "default" | "tv" = "default";
+  export let paginationDisabled = false;
 
   let currentOffset = 0;
   const itemsPerPage = 6;
 
+  // In TV mode or when pagination disabled, show all items
+  $: effectiveItemsPerPage = variant === "tv" || paginationDisabled ? departures.length : itemsPerPage;
+  $: showPagination = variant !== "tv" && !paginationDisabled && departures.length > itemsPerPage;
+
   // Calculate pagination values
-  $: maxOffset = departures.length - itemsPerPage;
-  $: visibleDepartures = departures.slice(currentOffset, currentOffset + itemsPerPage);
+  $: maxOffset = departures.length - effectiveItemsPerPage;
+  $: visibleDepartures = departures.slice(currentOffset, currentOffset + effectiveItemsPerPage);
   
   $: startIndex = currentOffset + 1;
-  $: endIndex = currentOffset + itemsPerPage;
+  $: endIndex = currentOffset + effectiveItemsPerPage;
   $: totalCount = departures.length;
 
   // Page indicator text
@@ -43,11 +50,11 @@
   }
 </script>
 
-<table class="departures-table">
+<table class="departures-table" class:tv-variant={variant === "tv"}>
   <colgroup>
-    <col width="1%" />
-    <col width="100%" />
-    <col width="1%" colspan="2"/>
+    <col style="width: 1%" />
+    <col style="width: 100%" />
+    <col style="width: 1%" span="2"/>
   </colgroup>
   <thead>
     <tr>
@@ -59,12 +66,12 @@
 
   <tbody>
     {#each visibleDepartures as departure,index (departure.id + index) }
-      <DepartureItem {departure} />
+      <DepartureItem {departure} {variant} />
     {/each}
   </tbody>
 
-  <!-- Pagination Footer (only show if more than 6 items) -->
-  {#if departures.length > itemsPerPage}
+  <!-- Pagination Footer (only show if more than 6 items and not TV) -->
+  {#if showPagination}
     <tfoot>
       <tr>
         <td colspan="4" class="departures-footer">
@@ -120,9 +127,20 @@
     text-align: right;
   }
 
-  .page-indicator {
-    font-size: 0.875rem;
-    color: var(--theme--accent-color);
-    white-space: nowrap;
+  /* TV Variant - Larger fonts for readability */
+  .tv-variant thead th {
+    padding: calc(var(--theme--spacing) * 2);
+    font-size: 2rem;
+  }
+
+  .tv-variant tbody {
+    min-height: unset;
+  }
+
+  /* Large screen optimizations for TV */
+  @media (min-width: 1200px) {
+    .tv-variant thead th {
+      font-size: 2.5rem;
+    }
   }
 </style>
