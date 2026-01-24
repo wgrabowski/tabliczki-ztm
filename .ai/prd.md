@@ -14,37 +14,44 @@ Głównym problemem jest utrudniony dostęp do szybkich i skonsolidowanych infor
 
 a. System uwierzytelniania:
 
-- Rejestracja i logowanie wyłącznie za pomocą e-mail i hasła (bez weryfikacji mailowej w fazie MVP).
-- Automatyczne zapamiętywanie sesji użytkownika.
+- Rejestracja i logowanie wyłącznie za pomocą e-mail i hasła.
+- W MVP aplikacja może działać w trybie bez potwierdzania e-mail, ale jeśli środowisko wymaga potwierdzenia adresu e-mail, interfejs powinien jasno zakomunikować konieczność potwierdzenia i pozwolić użytkownikowi wrócić do logowania.
+- Automatyczne zapamiętywanie sesji użytkownika (pozostanie zalogowanym między wizytami).
+- Widok konta umożliwia wylogowanie oraz trwałe usunięcie konta wraz z danymi użytkownika (zestawy i ich zawartość).
 
 b. Zarządzanie zestawami tablic:
 
 - Tworzenie do 6 zestawów przystanków przez zalogowanego użytkownika.
 - Nadawanie nazw zestawom (limit 10 znaków).
-- Edycja nazw zestawów w osobnym widoku zarządzania.
+- Edycja nazw zestawów bezpośrednio na liście zestawów (dashboard) – zmiana zapisywana po zatwierdzeniu (np. Enter) lub utracie fokusu.
 - Usuwanie całych zestawów wraz z zawartością.
 
 c. Dashboard i tablice:
 
-- Prezentacja odjazdów w formie gridu kart (widgetów) - maksymalnie 6 tablic w jednym zestawie.
+- Dashboard dzieli się na:
+  - widok listy zestawów (zarządzanie zestawami),
+  - widok pojedynczego zestawu (monitorowanie tablic w ramach wybranego zestawu).
+- Prezentacja odjazdów w formie gridu kart (widgetów) – maksymalnie 6 tablic w jednym zestawie.
 - Ukrywanie przycisku dodawania nowej tablicy po osiągnięciu limitu 6 elementów w gridzie.
 - Wyszukiwarka przystanków z autouzupełnianiem uwzględniająca nazwę, numer słupka i kierunek.
 - Wyświetlanie numeru linii, kierunku, czasu przyjazdu (względny/bezwzględny) oraz ikon udogodnień (rower, wózek).
 - Wyświetlanie pierwszych 6 odjazdów na karcie z możliwością przewijania (scroll) w celu zobaczenia pozostałych.
-- Obsługa komunikatów specjalnych (ticker) na górze karty widgetu.
+- Obsługa komunikatów specjalnych (ticker) na górze karty widgetu – jeśli źródło danych dostarcza komunikaty.
 
 d. Odświeżanie i dane:
 
 - Automatyczne odświeżanie danych co 1 minutę.
 - Wspólny wizualny pasek postępu odświeżania na górze ekranu, pod nagłówkiem aplikacji
-- Mechanizm cichego ponowienia (retry) po 5 sekundach w przypadku błędu sieci.
-- Wyświetlanie ikony błędu na karcie widgetu w przypadku trwałego problemu z pobraniem danych.
+- W przypadku problemów z pobraniem danych: użytkownik otrzymuje komunikat ostrzegawczy, a aplikacja próbuje ponownie w kolejnych cyklach odświeżania.
+- W przypadku powtarzających się błędów (np. kilka kolejnych nieudanych prób): odświeżanie zostaje wstrzymane, a interfejs wyświetla wyraźny komunikat oraz akcję „Spróbuj ponownie” (odświeżenie strony).
+- Pojedyncza karta może pokazywać błąd per-przystanek, jeśli tylko część danych nie jest dostępna.
 
 e. Tryb pełnoekranowy (TV):
 
 - Dostępny przez unikalny URL zawierający identyfikator przystanku.
 - Widok nie wymaga logowania do wyświetlania danych.
 - Wysoka czytelność: duża nazwa przystanku, zegar HH:mm i lista odjazdów.
+- Widok TV jest pasywny, ale dopuszcza minimalne interakcje wspierające długie działanie: przełącznik motywu oraz ręczne odświeżenie w razie błędu.
 
 f. Interfejs i personalizacja:
 
@@ -87,7 +94,7 @@ Tytuł: Zmiana nazwy zestawu
 Opis: Jako użytkownik chcę zmienić nazwę zestawu, aby lepiej odpowiadała jego przeznaczeniu.
 Kryteria akceptacji:
 
-- Edycja odbywa się w polu tekstowym w widoku zarządzania.
+- Edycja odbywa się bezpośrednio na liście zestawów (dashboard) w polu tekstowym.
 - Zmiana zapisuje się automatycznie po naciśnięciu Enter lub utracie fokusu.
 - Obowiązuje limit 10 znaków.
 
@@ -117,7 +124,7 @@ Opis: Jako użytkownik chcę szybko zmieniać widok między zestawami (np. rano/
 Kryteria akceptacji:
 
 - Lista rozwijana (Select) pozwala na wybór zestawu.
-- Wybrany zestaw ładuje odpowiednie tablice bez przeładowania strony.
+- Wybrany zestaw otwiera widok tablic dla tego zestawu (dedykowany URL zestawu).
 
 ID: US-007
 Tytuł: Tryb TV dla pojedynczej tablicy
@@ -126,7 +133,7 @@ Kryteria akceptacji:
 
 - Ikona na karcie widgetu otwiera URL z identyfikatorem przystanku.
 - Widok zawiera zegar HH:mm i powiększoną czcionkę odjazdów.
-- Brak elementów interakcyjnych (widok pasywny).
+- Widok jest pasywny, ale może zawierać minimalne akcje wspierające działanie (np. przełączenie motywu, odświeżenie na ekranie błędu).
 
 ID: US-008
 Tytuł: Usuwanie przystanków i zestawów
@@ -141,7 +148,7 @@ Tytuł: Wyświetlanie komunikatów specjalnych
 Opis: Jako pasażer chcę wiedzieć o utrudnieniach na moim przystanku.
 Kryteria akceptacji:
 
-- Jeśli API zwraca wiadomości, na górze karty widgetu pojawia się przewijany pasek (marquee).
+- Jeśli źródło danych zwraca wiadomości, na górze karty widgetu pojawia się przewijany pasek (marquee).
 - Pasek znika automatycznie, gdy brak komunikatów w API.
 
 ID: US-010
@@ -166,8 +173,8 @@ Tytuł: Obsługa błędów API
 Opis: Jako użytkownik chcę wiedzieć, gdy wystąpił problem techniczny z danymi.
 Kryteria akceptacji:
 
-- Po nieudanej próbie i jednym cichym retry, na karcie pojawia się ikona błędu.
-- Kolejne cykliczne odświeżenie próbuje samoczynnie przywrócić dane.
+- Przy problemie z odświeżeniem użytkownik dostaje czytelny komunikat (np. ostrzeżenie), a aplikacja podejmuje kolejne próby w następnych cyklach.
+- Przy powtarzających się błędach aplikacja wyświetla wyraźny stan awaryjny i umożliwia ręczne wznowienie (np. przez odświeżenie strony).
 
 ## 6. Metryki sukcesu
 
