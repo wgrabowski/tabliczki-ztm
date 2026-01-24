@@ -14,9 +14,10 @@
 - [3. Tech stack](#3-tech-stack)
 - [4. Getting started locally](#4-getting-started-locally)
 - [5. Available scripts](#5-available-scripts)
-- [6. Project scope](#6-project-scope)
-- [7. Project status](#7-project-status)
-- [8. License](#8-license)
+- [6. API Testing with Postman](#6-api-testing-with-postman)
+- [7. Project scope](#7-project-scope)
+- [8. Project status](#8-project-status)
+- [9. License](#9-license)
 
 ## 2. Project description
 
@@ -85,7 +86,65 @@ From `package.json`:
 - **`npm run lint:fix`**: auto-fix ESLint issues where possible
 - **`npm run format`**: format with Prettier
 
-## 6. Project scope
+## 6. API Testing with Postman
+
+### Quick Start
+
+The project includes a ready-to-use Postman collection for testing all API endpoints locally:
+
+1. **Import the collection** into Postman:
+   - File: `postman_collection.json`
+   - Contains all REST API endpoints (Sets and Set Items)
+
+2. **Import the environment** (optional but recommended):
+   - File: `postman_environment_local.json`
+   - Pre-configured for local development
+
+3. **Configure authentication**:
+   - Set your Supabase JWT token in the `auth_token` variable
+   - See `POSTMAN_SETUP.md` for detailed instructions
+
+### What's Included
+
+#### Endpoints
+
+- **Sets Management**: GET, POST, PATCH, DELETE operations on sets
+- **Set Items Management**: GET, POST, DELETE operations on items within sets
+- **Test Scenarios**: Full flow examples and error case testing
+
+#### Features
+
+- ✅ Automatic variable management (IDs are auto-saved after creation)
+- ✅ Pre-configured authentication headers
+- ✅ Automated tests with assertions
+- ✅ Example requests with realistic data
+- ✅ Error case validation tests
+
+### Documentation
+
+For detailed setup instructions, authentication methods, and troubleshooting, see:
+
+- **[POSTMAN_SETUP.md](./POSTMAN_SETUP.md)** - Complete guide with screenshots
+- **[.ai/api-plan.md](./.ai/api-plan.md)** - Full API specification
+
+### Running Tests
+
+```bash
+# 1. Start the dev server
+npm run dev
+
+# 2. In Postman: Right-click collection → "Run collection"
+# 3. Select all requests and click "Run"
+```
+
+All tests include automatic validation of:
+
+- HTTP status codes
+- Response structure
+- Error codes and messages
+- Business logic constraints (max 6 sets, max 6 items, etc.)
+
+## 7. Project scope
 
 ### MVP functional scope (from PRD)
 
@@ -126,11 +185,11 @@ From `package.json`:
 - Manual reordering of boards in the grid (only add/remove)
 - Advanced filtering of lines within a single board
 
-## 7. Project status
+## 8. Project status
 
 **MVP: in progress.** Requirements are defined in `.ai/prd.md`; implementation may be partial and will evolve as features are built and integrated (including the planned Supabase backend).
 
-## 8. License
+## 9. License
 
 **MIT** (as currently stated by the repository).
 
