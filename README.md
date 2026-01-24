@@ -14,11 +14,12 @@
 - [3. Tech stack](#3-tech-stack)
 - [4. Getting started locally](#4-getting-started-locally)
 - [5. Available scripts](#5-available-scripts)
-- [6. API Testing with Postman](#6-api-testing-with-postman)
-- [7. Test plan](#7-test-plan)
-- [8. Project scope](#8-project-scope)
-- [9. Project status](#9-project-status)
-- [10. License](#10-license)
+- [6. Testing](#6-testing)
+- [7. API Testing with Postman](#7-api-testing-with-postman)
+- [8. Test plan](#8-test-plan)
+- [9. Project scope](#9-project-scope)
+- [10. Project status](#10-project-status)
+- [11. License](#11-license)
 
 ## 2. Project description
 
@@ -88,8 +89,55 @@ From `package.json`:
 - **`npm run lint`**: run ESLint on the repo
 - **`npm run lint:fix`**: auto-fix ESLint issues where possible
 - **`npm run format`**: format with Prettier
+- **`npm run test`**: run all tests (unit + E2E)
+- **`npm run test:unit`**: run unit tests with Vitest
+- **`npm run test:unit:watch`**: run unit tests in watch mode
+- **`npm run test:unit:ui`**: run unit tests with Vitest UI
+- **`npm run test:unit:coverage`**: run unit tests with coverage report
+- **`npm run test:e2e`**: run E2E tests with Playwright
+- **`npm run test:e2e:ui`**: run E2E tests with Playwright UI
+- **`npm run test:e2e:headed`**: run E2E tests in headed mode (see browser)
+- **`npm run test:e2e:debug`**: debug E2E tests with Playwright Inspector
 
-## 6. API Testing with Postman
+## 6. Testing
+
+The project includes comprehensive test coverage:
+
+- **Unit tests**: Vitest for validation, error mapping, and business logic
+- **Integration tests**: API endpoint tests with mocked database
+- **E2E tests**: Playwright for full user flow testing
+
+### Quick Start
+
+```bash
+# Run all tests
+npm run test
+
+# Run unit tests only
+npm run test:unit
+
+# Run E2E tests only
+npm run test:e2e
+
+# Watch mode for development
+npm run test:unit:watch
+
+# Generate coverage report
+npm run test:unit:coverage
+```
+
+### Documentation
+
+- **Test directory structure**: [src/tests/README.md](./src/tests/README.md)
+- **Test plan**: [.ai/test-plan.md](./.ai/test-plan.md)
+
+### Configuration
+
+- `vitest.config.ts` - Vitest configuration
+- `playwright.config.ts` - Playwright configuration
+- `.env.test.example` - Example test environment variables (copy to `.env.test`)
+
+## 7. API Testing with Postman
 
 ### Quick Start
 
@@ -132,13 +180,13 @@ Recommended checks for API responses:
 - Error codes and messages
 - Business logic constraints (max 6 sets, max 6 items, etc.)
 
-## 7. Test plan
+## 8. Test plan
 
 The project’s QA assumptions, scenarios, and acceptance criteria are described in:
 
 - **[.ai/test-plan.md](./.ai/test-plan.md)**
 
-## 8. Project scope
+## 9. Project scope
 
 ### MVP functional scope (from PRD)
 
@@ -182,11 +230,11 @@ The project’s QA assumptions, scenarios, and acceptance criteria are described
 - Manual reordering of boards in the grid (only add/remove)
 - Advanced filtering of lines within a single board
 
-## 9. Project status
+## 10. Project status
 
 **MVP: in progress.** Requirements are defined in `.ai/prd.md`; implementation may be partial and will evolve as features are built and integrated.
 
-## 10. License
+## 11. License
 
 **MIT** (as currently stated by the repository).
 
