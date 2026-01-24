@@ -6,6 +6,9 @@ import AccountButton from "../components/AccountButton.svelte";
 import { getUserId } from "../lib/auth/get-user-id";
 import type { SetListResponse } from "../types";
 
+// Disable prerendering - this page requires dynamic data
+export const prerender = false;
+
 // SSR Guard - check authentication
 const result = await getUserId(Astro.locals.supabase);
 if (!result.success) {
@@ -15,9 +18,11 @@ if (!result.success) {
 // Fetch sets data
 let setsData: SetListResponse;
 try {
-  const response = await fetch(`${Astro.url.origin}/api/sets`, {
+  const response = await fetch(`${Astro.url.origin}/api/sets?t=${Date.now()}`, {
     headers: {
       cookie: Astro.request.headers.get("cookie") || "",
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      Pragma: "no-cache",
     },
   });
 

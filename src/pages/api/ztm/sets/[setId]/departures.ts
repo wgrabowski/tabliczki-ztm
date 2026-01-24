@@ -3,16 +3,18 @@ import type { APIRoute } from "astro";
 import { getUserId } from "../../../../../lib/auth/get-user-id.ts";
 import { mapDatabaseError } from "../../../../../lib/errors/db-errors.ts";
 import { getAllSetItems, verifySetOwnership } from "../../../../../lib/services/set-items.service.ts";
-import { getStops } from "../../../../../lib/services/ztm.service.ts";
 import { getDepartures, ZtmServiceError } from "../../../../../lib/services/ztm.service.ts";
 import { deleteSetParamsSchema } from "../../../../../lib/validation/sets.validation.ts";
 import type { ErrorResponse } from "../../../../../types.ts";
-import type { GetZtmSetDeparturesResponse, ZtmSetStopDeparturesResultDTO } from "../../../../../ztm-types.ts";
+import type {
+  GetZtmSetDeparturesResponse,
+  ZtmDepartureDTO,
+  ZtmSetStopDeparturesErrorDTO,
+} from "../../../../../ztm-types.ts";
 
 export const prerender = false;
 
 const DEPARTURES_CACHE_SECONDS = 20;
-const STOPS_CACHE_SECONDS = 6 * 60 * 60; // 6h
 
 export const GET: APIRoute = async ({ params, locals }) => {
   const paramsParse = deleteSetParamsSchema.safeParse(params);
@@ -47,87 +49,79 @@ export const GET: APIRoute = async ({ params, locals }) => {
     // Load all items in the set (max 6 by DB rule)
     const items = await getAllSetItems(locals.supabase, setId);
 
-    // Fetch stops dataset once (cached in service layer) to enrich response
-    const stopsData = await getStops({ cacheTtlMs: STOPS_CACHE_SECONDS * 1000, timeoutMs: 10_000 });
-    const stopsById = new Map(stopsData.stops.map((s) => [s.stopId, s]));
+    // Build data and error maps: stopId -> departures[] or error
+    const dataMap: Record<string, ZtmDepartureDTO[]> = {};
+    const errorMap: Record<string, ZtmSetStopDeparturesErrorDTO> = {};
 
-    const results: ZtmSetStopDeparturesResultDTO[] = await Promise.all(
+    await Promise.all(
       items.map(async (item) => {
-        // Defensive guard: DB + API validation should ensure positive ints, but don't crash the whole response.
+        const stopIdKey = item.stop_id.toString();
+
+        // Defensive guard: DB + API validation should ensure positive ints
         if (!Number.isInteger(item.stop_id) || item.stop_id <= 0) {
-          return {
-            ok: false,
-            stop_id: item.stop_id,
-            stop: stopsById.get(item.stop_id) ?? null,
-            position: item.position,
-            item_id: item.id,
-            error: {
-              code: "INVALID_STOP_ID",
-              message: "Invalid stop_id in set item",
-              status: 400,
-            },
+          errorMap[stopIdKey] = {
+            code: "INVALID_STOP_ID",
+            message: "Invalid stop_id in set item",
+            status: 400,
           };
+          return;
         }
 
         try {
-          const data = await getDepartures(
+          const departuresData = await getDepartures(
             { stopId: item.stop_id },
             { cacheTtlMs: DEPARTURES_CACHE_SECONDS * 1000, timeoutMs: 8_000 }
           );
 
-          return {
-            ok: true,
-            stop_id: item.stop_id,
-            stop: stopsById.get(item.stop_id) ?? null,
-            position: item.position,
-            item_id: item.id,
-            data,
-          };
+          // Add departures to data map
+          dataMap[stopIdKey] = departuresData.departures;
         } catch (e: unknown) {
+          // Add error to error map
           if (e instanceof ZtmServiceError) {
-            return {
-              ok: false,
-              stop_id: item.stop_id,
-              stop: stopsById.get(item.stop_id) ?? null,
-              position: item.position,
-              item_id: item.id,
-              error: {
-                code: e.code,
-                message: e.message,
-                status: e.httpStatus,
-              },
+            errorMap[stopIdKey] = {
+              code: e.code,
+              message: e.message,
+              status: e.httpStatus,
             };
-          }
-
-          return {
-            ok: false,
-            stop_id: item.stop_id,
-            stop: stopsById.get(item.stop_id) ?? null,
-            position: item.position,
-            item_id: item.id,
-            error: {
+          } else {
+            errorMap[stopIdKey] = {
               code: "INTERNAL_ERROR",
               message: "An unexpected error occurred",
               status: 500,
-            },
-          };
+            };
+          }
         }
       })
     );
 
+    // If we have any successful data, return success response
+    if (Object.keys(dataMap).length > 0) {
+      const response: GetZtmSetDeparturesResponse = {
+        ok: true,
+        data: dataMap,
+      };
+
+      return new Response(JSON.stringify(response), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          // User-specific aggregation: do not cache publicly/CDN. Still allow short private caching.
+          "Cache-Control": `private, max-age=${DEPARTURES_CACHE_SECONDS}, stale-while-revalidate=${DEPARTURES_CACHE_SECONDS}`,
+          Vary: "Cookie",
+        },
+      });
+    }
+
+    // All requests failed, return error response
     const response: GetZtmSetDeparturesResponse = {
-      set_id: setId,
-      results,
-      fetched_at: new Date().toISOString(),
+      ok: false,
+      error: errorMap,
     };
 
     return new Response(JSON.stringify(response), {
-      status: 200,
+      status: 500,
       headers: {
         "Content-Type": "application/json",
-        // User-specific aggregation: do not cache publicly/CDN. Still allow short private caching.
-        "Cache-Control": `private, max-age=${DEPARTURES_CACHE_SECONDS}, stale-while-revalidate=${DEPARTURES_CACHE_SECONDS}`,
-        Vary: "Cookie",
       },
     });
   } catch (error: unknown) {

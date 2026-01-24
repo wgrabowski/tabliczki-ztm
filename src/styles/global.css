@@ -21,9 +21,9 @@
 :root {
   color-scheme: dark light;
   /* Color Palette - Monochromatic */
-  --theme--bg-color: light-dark(#eee, black);
-  --theme--accent-color: light-dark(#444444, goldenrod);
-  --theme--accent-color-dim: light-dark(#333333, darkgoldenrod);
+  --theme--bg-color: light-dark(#ccc, black);
+  --theme--accent-color: light-dark(#333333, goldenrod);
+  --theme--accent-color-dim: light-dark(#333, darkgoldenrod);
 
   /* Status Colors */
   --theme--positive: lightgreen;
@@ -110,11 +110,11 @@ textarea {
 }
 
 .theme-clickable:hover {
-  filter: brightness(1.5);
+  filter: brightness(1.25) contrast(1.25);
 }
 
 .theme-clickable:active {
-  filter: brightness(0.8);
+  filter: brightness(0.8) contrast(0.8);
 }
 
 /* Accessibility */
@@ -134,4 +134,9 @@ input:user-invalid {
 
 input:user-valid {
   border-color: var(--theme--positive);
+}
+
+select,
+::picker(select) {
+  appearance: base-select;
 }

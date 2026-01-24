@@ -156,9 +156,15 @@ export interface GetZtmSetStopsResponse {
  * API response for GET /api/ztm/sets/{setId}/departures
  *
  * Aggregates departures for all stop_id entries in a set.
+ * Returns either success with departures data or failure with errors,
+ * both as Records keyed by stopId.
  */
-export interface GetZtmSetDeparturesResponse {
-  set_id: string;
-  results: ZtmSetStopDeparturesResultDTO[];
-  fetched_at: string;
-}
+export type GetZtmSetDeparturesResponse =
+  | {
+      ok: true;
+      data: Record<string, ZtmDepartureDTO[]>;
+    }
+  | {
+      ok: false;
+      error: Record<string, ZtmSetStopDeparturesErrorDTO>;
+    };

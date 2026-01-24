@@ -257,3 +257,77 @@ export interface ConfirmDialogState {
   /** Callback executed on confirmation */
   onConfirm: () => void;
 }
+
+// ============================================================================
+// Set Dashboard View Types
+// ============================================================================
+
+/**
+ * Dane początkowe przekazywane z SSR do SetDashboardView
+ */
+export interface SetDashboardInitialData {
+  /** Set ID (UUID) */
+  setId: string;
+  /** List of items in the set */
+  items: SetItemDTO[];
+  /** Stop metadata for items in the set */
+  stops: import("./ztm-types").ZtmSetStopDTO[];
+  /** All user's sets (for SetSelect) */
+  sets: SetDTO[];
+  // Note: departures are NOT passed - loaded in onMount() without blocking rendering
+  // Note: allStops are NOT passed - loaded by stopsStore client-side
+}
+
+/**
+ * Stan lokalny widoku SetDashboardView
+ */
+export interface SetDashboardState {
+  /** Items in the set */
+  items: SetItemDTO[];
+  /** Departures data (null until first load) */
+  departuresData: import("./ztm-types").GetZtmSetDeparturesResponse | null;
+  /** Stop metadata */
+  stopsData: import("./ztm-types").ZtmSetStopDTO[];
+  /** Consecutive error count (0-3) */
+  errorCount: number;
+  /** True during fetch */
+  isRefreshing: boolean;
+  /** True before first departures load */
+  isInitialLoad: boolean;
+  /** True after 3 errors (cycle stopped) */
+  isCycleStopped: boolean;
+  /** Whether add dialog is open */
+  isAddDialogOpen: boolean;
+  /** Confirm dialog state */
+  confirmDialog: ConfirmDialogState;
+}
+
+/**
+ * Dane pojedynczej karty przystanku (StopCard)
+ */
+export interface StopCardData {
+  /** UUID set_item */
+  itemId: string;
+  /** ZTM stop ID */
+  stopId: number;
+  /** Stop metadata (may be null) */
+  stop: import("./ztm-types").ZtmStopDTO | null;
+  /** Position in set */
+  position: number;
+  /** Departures for this stop (null during loading) */
+  departures: import("./ztm-types").ZtmDepartureDTO[] | null;
+  /** Error for this stop (if any) */
+  error: import("./ztm-types").ZtmSetStopDeparturesErrorDTO | null;
+}
+
+/**
+ * Stan paska postępu odświeżania
+ */
+export interface RefreshProgressState {
+  /** Seconds left (0-60) */
+  secondsLeft: number;
+  /** True during fetch */
+  isRefreshing: boolean;
+  /** Error count for visual state */
+  errorCount: number;
+}

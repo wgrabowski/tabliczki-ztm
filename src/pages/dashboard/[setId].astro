@@ -1,0 +1,143 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import AppLayout from "../../layouts/AppLayout.svelte";
+import SetDashboardView from "../../components/SetDashboardView.svelte";
+import AccountButton from "../../components/AccountButton.svelte";
+import BackToDashboardButton from "../../components/BackToDashboardButton.svelte";
+import SetSelect from "../../components/SetSelect.svelte";
+import { getUserId } from "../../lib/auth/get-user-id";
+import type { SetDashboardInitialData, SetListResponse, SetItemListResponse } from "../../types";
+import type { GetZtmSetStopsResponse } from "../../ztm-types";
+
+// Disable prerendering - this page requires dynamic data
+export const prerender = false;
+
+// ============================================================================
+// SSR Guard - Authentication
+// ============================================================================
+
+const result = await getUserId(Astro.locals.supabase);
+if (!result.success) {
+  return Astro.redirect("/login");
+}
+
+// ============================================================================
+// Validate setId parameter (UUID format)
+// ============================================================================
+
+const { setId } = Astro.params;
+
+if (!setId) {
+  return Astro.redirect("/dashboard");
+}
+
+// Simple UUID validation (RFC 4122)
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+if (!uuidRegex.test(setId)) {
+  return Astro.redirect("/dashboard");
+}
+
+// ============================================================================
+// Fetch initial data (MINIMUM needed for rendering)
+// ============================================================================
+
+const origin = Astro.url.origin;
+const cookieHeader = Astro.request.headers.get("cookie") || "";
+
+let initialData: SetDashboardInitialData;
+
+try {
+  // Fetch set items
+  const itemsResponse = await fetch(`${origin}/api/sets/${setId}/items?t=${Date.now()}`, {
+    headers: {
+      cookie: cookieHeader,
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      Pragma: "no-cache",
+    },
+  });
+
+  if (itemsResponse.status === 401) {
+    return Astro.redirect("/login");
+  }
+
+  if (itemsResponse.status === 404) {
+    return Astro.redirect("/dashboard");
+  }
+
+  if (itemsResponse.status === 403) {
+    return Astro.redirect("/dashboard");
+  }
+
+  if (!itemsResponse.ok) {
+    return Astro.redirect("/dashboard");
+  }
+
+  const itemsData: SetItemListResponse = await itemsResponse.json();
+
+  // Fetch stop metadata for the set
+  const stopsResponse = await fetch(`${origin}/api/ztm/sets/${setId}/stops?t=${Date.now()}`, {
+    headers: {
+      cookie: cookieHeader,
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      Pragma: "no-cache",
+    },
+  });
+
+  if (!stopsResponse.ok) {
+    return Astro.redirect("/dashboard");
+  }
+
+  const stopsData: GetZtmSetStopsResponse = await stopsResponse.json();
+
+  // Fetch all user's sets (for SetSelect)
+  const setsResponse = await fetch(`${origin}/api/sets?t=${Date.now()}`, {
+    headers: {
+      cookie: cookieHeader,
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      Pragma: "no-cache",
+    },
+  });
+
+  if (!setsResponse.ok) {
+    return Astro.redirect("/dashboard");
+  }
+
+  const setsListData: SetListResponse = await setsResponse.json();
+
+  // Assemble initial data
+  initialData = {
+    setId,
+    items: itemsData.items,
+    stops: stopsData.stops,
+    sets: setsListData.sets,
+  };
+
+  // NOTE: departures are NOT fetched here - loaded client-side in onMount()
+  // NOTE: allStops are NOT fetched here - loaded by stopsStore client-side
+} catch {
+  return Astro.redirect("/dashboard");
+}
+
+// Get current set name for page title
+const currentSet = initialData.sets.find((s) => s.id === setId);
+const pageTitle = currentSet ? `${currentSet.name} - Dashboard` : "Dashboard";
+---
+
+<Layout title={pageTitle}>
+  <AppLayout client:load>
+    <!-- Header Left Slot -->
+    <div slot="header-left" style="display: flex; gap: var(--theme--spacing); align-items: center;">
+      <AccountButton client:load />
+      <BackToDashboardButton client:load />
+      <SetSelect sets={initialData.sets} currentSetId={setId} client:load />
+    </div>
+
+    <!-- Main Content -->
+    <SetDashboardView
+      setId={initialData.setId}
+      initialItems={initialData.items}
+      initialStops={initialData.stops}
+      client:load
+    />
+  </AppLayout>
+</Layout>

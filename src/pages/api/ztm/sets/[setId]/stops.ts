@@ -10,8 +10,6 @@ import type { GetZtmSetStopsResponse, ZtmSetStopDTO } from "../../../../../ztm-t
 
 export const prerender = false;
 
-const STOPS_CACHE_SECONDS = 6 * 60 * 60; // 6h
-
 export const GET: APIRoute = async ({ params, locals }) => {
   const paramsParse = deleteSetParamsSchema.safeParse(params);
   if (!paramsParse.success) {
@@ -42,7 +40,8 @@ export const GET: APIRoute = async ({ params, locals }) => {
 
     const items = await getAllSetItems(locals.supabase, setId);
 
-    const stopsData = await getStops({ cacheTtlMs: STOPS_CACHE_SECONDS * 1000, timeoutMs: 10_000 });
+    // Fetch all ZTM stops (cached internally for 6h in the service layer)
+    const stopsData = await getStops({ cacheTtlMs: 6 * 60 * 60 * 1000, timeoutMs: 10_000 });
     const stopsById = new Map(stopsData.stops.map((s) => [s.stopId, s]));
 
     const stops: ZtmSetStopDTO[] = items.map((item) => ({
@@ -63,10 +62,11 @@ export const GET: APIRoute = async ({ params, locals }) => {
       status: 200,
       headers: {
         "Content-Type": "application/json",
-        // User-specific aggregation: do not cache publicly/CDN.
-        // Local ZTM stops cache (6h) is still used in the service layer.
-        "Cache-Control": `private, max-age=${STOPS_CACHE_SECONDS}, stale-while-revalidate=86400`,
-        Vary: "Cookie",
+        // Don't cache - items list changes dynamically when user adds/removes stops
+        // Note: ZTM stops data is still cached in the service layer (6h)
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+        Pragma: "no-cache",
+        Expires: "0",
       },
     });
   } catch (error: unknown) {

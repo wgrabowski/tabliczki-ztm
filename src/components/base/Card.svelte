@@ -3,6 +3,7 @@
    * Card component with header containing title and action slots
    */
   export let title: string;
+  export let noPadding: boolean = false;
 </script>
 
 <article class="card theme-outlined theme-noradius">
@@ -15,7 +16,7 @@
       <slot name="deleteAction" />
     </div>
   </header>
-  <div class="card__content">
+  <div class="card__content" class:card__content--noPadding={noPadding}>
     <slot />
   </div>
 </article>
@@ -52,5 +53,9 @@
 
   .card__content {
     padding: calc(var(--theme--spacing) * 2);
+  }
+
+  .card__content--noPadding {
+    padding: 0;
   }
 </style>

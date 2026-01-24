@@ -2,7 +2,7 @@
   import { onMount, onDestroy } from "svelte";
 
   /**
-   * Dialog wrapper for native <dialog> with focus management
+   * Prompt wrapper for native <dialog> with focus management
    */
   export let isOpen: boolean = false;
   export let title: string | undefined = undefined;
@@ -64,6 +64,7 @@
 
   .dialog::backdrop {
     background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(1px) saturate(180%);
   }
 
   .dialog__content {

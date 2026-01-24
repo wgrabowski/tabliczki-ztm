@@ -40,8 +40,8 @@
     align-items: center;
     justify-content: center;
     padding: var(--theme--spacing);
-    min-height: 44px;
-    min-width: 44px;
+    min-height: 20px;
+    min-width: 20px;
     border:0;
   }
 

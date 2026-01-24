@@ -12,7 +12,7 @@
 <style>
   .dashboard-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(calc(33% - var(--theme--spacing) * 12), 1fr));
     grid-auto-rows: minmax(100px, 1fr);
     gap: calc(var(--theme--spacing) * 6);
     width: 100%;

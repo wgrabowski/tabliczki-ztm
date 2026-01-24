@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Dialog from "./base/Dialog.svelte";
+  import Prompt from "./base/Prompt.svelte";
   import Button from "./base/Button.svelte";
 
   /**
@@ -22,7 +22,7 @@
   }
 </script>
 
-<Dialog {isOpen} {title} onClose={handleCancel}>
+<Prompt {isOpen} {title} onClose={handleCancel}>
   <div class="confirm-dialog">
     <p class="confirm-dialog__message">{message}</p>
     <div class="confirm-dialog__actions">
@@ -30,7 +30,7 @@
       <Button variant="secondary" onClick={handleCancel}>{cancelText}</Button>
     </div>
   </div>
-</Dialog>
+</Prompt>
 
 <style>
   .confirm-dialog {

@@ -1,6 +1,6 @@
 <script lang="ts">
   import IconButton from "./base/IconButton.svelte";
-  import Dialog from "./base/Dialog.svelte";
+  import Prompt from "./base/Prompt.svelte";
   import TextInput from "./base/TextInput.svelte";
   import Button from "./base/Button.svelte";
 
@@ -51,7 +51,7 @@
   <span class="create-set-button__text">Dodaj zestaw</span>
 </button>
 
-<Dialog isOpen={isDialogOpen} title="Nowy zestaw" onClose={closeDialog}>
+<Prompt isOpen={isDialogOpen} title="Nowy zestaw" onClose={closeDialog}>
   <form class="create-set-form" on:submit={handleSubmit} method="dialog">
     <TextInput
       bind:value={newSetName}
@@ -71,7 +71,7 @@
       </Button>
     </div>
   </form>
-</Dialog>
+</Prompt>
 
 <style>
   .create-set-button {

@@ -1,9 +1,12 @@
 <script lang="ts">
   import GlobalPreloader from "../components/GlobalPreloader.svelte";
   import ToastStack from "../components/ToastStack.svelte";
+  import Clock from "../components/Clock.svelte";
+  import ThemeToggle from "../components/ThemeToggle.svelte";
 
   /**
    * Shared application layout with header, global UI components
+   * header-right is fixed with Clock and ThemeToggle
    */
 </script>
 
@@ -13,7 +16,8 @@
       <slot name="header-left" />
     </div>
     <div class="app-header__right">
-      <slot name="header-right" />
+      <ThemeToggle />
+      <Clock />
     </div>
   </header>
 
@@ -35,6 +39,9 @@
   }
 
   .app-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
     display: flex;
     justify-content: space-between;
     align-items: center;
