@@ -37,10 +37,10 @@
     "typescript-eslint": "8.53.0"
   },
   "lint-staged": {
-    "*.{ts,tsx,astro}": [
+    "*.{ts,tsx,astro,svelte}": [
       "eslint --fix"
     ],
-    "*.{json,css,md}": [
+    "*": [
       "prettier --write"
     ]
   }
