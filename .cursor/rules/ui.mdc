@@ -1,0 +1,91 @@
+---
+description: ui-rules
+globs: *.svelte, *.css
+alwaysApply: false
+---
+# UI styling rules
+
+# typography
+<main-font>
+- 'Departure Mono' font is main typeface, with fallback to monospace;
+- 'Departure Mono' font files are in public/fonts directory, font should be served with applicatons
+</main-font>
+
+<main-font> should be applied globally and directly on elements like buttons, inputs and other form controls to ensure it is applied
+
+<icon-font>
+- Material Symbols imported from Google Fonts should be used for icons
+</icon-font>
+
+# Main colors
+- color palette is limited to global colors:
+```css
+--theme--bg-color: light-dark(#eee, #222)
+--theme--accent-color: light-dark(#444444, goldenrod)
+--theme--accent-color-dim: light-dark(#333333,darkgoldenrod);
+```
+
+Components should use following combinations:
+<outlined>
+ - --theme--bg-color as background
+ - --theme--accent-color as text color
+ - --theme--accent-color-dim for border color
+</outlined>
+<filled>
+
+ - --theme--accent-color-dim for border color and background
+ - --theme--bg-color as foreground color (text, icons)
+</filled>
+
+ Interactive components like buttons should have two variants:
+ - primary or default with <filled> coloring
+ - secondary or inverted <outlined> coloring
+
+Component like inputs, selects etc, should use <outlined> coloring
+
+Icon buttons should have transparent background 
+
+Headers should use <filled> coloring
+
+No other colors should be used in generated code, expect for Status colors. This is intentionally monochromatic color palette.
+
+# Status colors
+For form validation and toast notifications there are two additional colors:
+```css
+--theme--positive: lightgreen;
+--theme--negative: red;
+```
+They should be used for toast notification background, error icons and validity states of inputs (:user-invalid )
+
+# Hover and active states 
+<clickable>
+Hovered interactive elements should use: `filter: brightness(1.5)` to indicate this state and `filter:brightness(0.8)` for :active states.
+</clickable>
+
+
+# Focus ring
+<focusable>
+ - use :focus-visible selector
+ - use outline offset with 0.2em value;
+ - --theme--accent-color-dim should be used as outline color
+</focusable>
+ 
+
+# Border radius
+<noradius>
+No element, expect for round ones, should have border-radius different than 0.
+Everything should be squared-cornered.
+</noradius>
+All buttons, inputs and other form elements should be <noradius>
+
+# Spacings
+Use single value for spacing ```css --theme--spacing: 0.25em```, do not multiply it
+
+
+## Global CSS classes
+ - .theme-icon for <icon-font>
+ - .theme-filled for <filled>
+ - .theme-outlined for <outlined>
+ - .theme-focusable for <focusable>
+ - .theme-noradius for <squared>
+ - .theme-clickable for <clickable>
