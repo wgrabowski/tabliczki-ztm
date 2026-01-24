@@ -18,7 +18,7 @@ export const prerender = false;
 
 const result = await getUserId(Astro.locals.supabase);
 if (!result.success) {
-  return Astro.redirect("/login");
+  return Astro.redirect("/auth/login");
 }
 
 // ============================================================================
@@ -57,7 +57,7 @@ try {
   });
 
   if (itemsResponse.status === 401) {
-    return Astro.redirect("/login");
+    return Astro.redirect("/auth/login");
   }
 
   if (itemsResponse.status === 404) {

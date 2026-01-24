@@ -1,0 +1,77 @@
+---
+import Layout from "../layouts/Layout.astro";
+import LoginForm from "../components/auth/LoginForm.svelte";
+
+// If user is already logged in, redirect to dashboard
+// This will be implemented when middleware is ready
+---
+
+<Layout>
+  <main class="auth-page">
+    <div class="auth-container">
+      <header class="auth-header">
+        <h1 class="auth-title">Tabliczki ZTM</h1>
+        <p class="auth-subtitle">Zaloguj się do swojego konta</p>
+      </header>
+
+      <div class="auth-form-wrapper">
+        <LoginForm client:load />
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  .auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: calc(var(--theme--spacing) * 4);
+  }
+
+  .auth-container {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--theme--spacing) * 6);
+  }
+
+  .auth-header {
+    text-align: center;
+  }
+
+  .auth-title {
+    font-size: 2rem;
+    font-weight: normal;
+    margin: 0 0 calc(var(--theme--spacing) * 2) 0;
+    color: var(--theme--accent-color);
+  }
+
+  .auth-subtitle {
+    font-size: 1rem;
+    margin: 0;
+    color: var(--theme--accent-color-dim);
+  }
+
+  .auth-form-wrapper {
+    padding: calc(var(--theme--spacing) * 6);
+    background-color: var(--theme--bg-color);
+    border: 1px solid var(--theme--accent-color-dim);
+  }
+
+  @media (max-width: 640px) {
+    .auth-page {
+      padding: calc(var(--theme--spacing) * 2);
+    }
+
+    .auth-title {
+      font-size: 1.5rem;
+    }
+
+    .auth-form-wrapper {
+      padding: calc(var(--theme--spacing) * 4);
+    }
+  }
+</style>
