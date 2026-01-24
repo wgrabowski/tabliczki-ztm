@@ -167,10 +167,12 @@ All tests include automatic validation of:
   - Shared refresh progress bar at the top of the screen (under header)
   - Silent retry after **5 seconds** on network error
   - Error icon on widget after a persistent failure; future refreshes keep trying
-- **TV mode (public, no login)**
-  - Unique URL containing the stop identifier
-  - High readability: big stop name, clock (HH:mm), list of departures
-  - Passive view (no interactive UI)
+- **TV mode (public, no login)** ✅ **IMPLEMENTED**
+  - Accessible via `/tv/{stopId}` route
+  - High readability: large stop name, clock (HH:mm), list of departures
+  - Passive view with minimal interaction (theme toggle, reload on error)
+  - Auto-refresh every 60 seconds with retry mechanism (max 3 attempts)
+  - Optimized for large screens (responsive typography up to 3rem)
 - **UI**
   - Header: current time, set switcher (dashboard), links to set/account management
   - Theme switcher: Light / Dark / System (default), not persisted
