@@ -70,7 +70,7 @@ Główny kontener strony renderowany po stronie serwera. Odpowiedzialny za zabez
 
 **Warunki walidacji:**
 
-- Weryfikacja sesji przez `locals.supabase.auth.getUser()`
+- Weryfikacja sesji przez `getUserId(locals.supabase)` z `src/lib/auth/get-user-id.ts`
 - Obsługa błędów API w fazie SSR
 
 **Typy:**
@@ -1296,13 +1296,13 @@ if (response.status === 409) {
 
 ```typescript
 // src/pages/dashboard.astro
-const {
-  data: { user },
-  error,
-} = await locals.supabase.auth.getUser();
-if (error || !user) {
+import { getUserId } from "../lib/auth/get-user-id.ts";
+
+const result = await getUserId(locals.supabase);
+if (!result.success) {
   return Astro.redirect("/login");
 }
+const userId = result.userId;
 ```
 
 **Implementacja (CSR):**
@@ -1962,28 +1962,29 @@ Implementacja komponentów bazowych zgodnie z sekcją 11. Kolejność implementa
 
 1. Lokalizacja: `src/pages/dashboard.astro`
 2. SSR guard:
+
    ```typescript
-   const {
-     data: { user },
-     error,
-   } = await locals.supabase.auth.getUser();
-   if (error || !user) {
+   import { getUserId } from "../lib/auth/get-user-id.ts";
+
+   const result = await getUserId(locals.supabase);
+   if (!result.success) {
      return Astro.redirect("/login");
    }
+   const userId = result.userId;
    ```
+
 3. Pobranie danych:
    ```typescript
-   const response = await fetch(`${Astro.url.origin}/api/sets`, {
-     headers: {
-       Authorization: `Bearer ${session.access_token}`,
-     },
-   });
+   // W SSR context Astro automatycznie przekazuje cookies do API endpoint
+   // Middleware obsługuje autentykację przez locals.supabase
+   const response = await fetch(`${Astro.url.origin}/api/sets`);
    if (response.status === 401) {
      return Astro.redirect("/login");
    }
    const data: SetListResponse = await response.json();
    ```
 4. Layout:
+
    ```astro
    <Layout title="Dashboard">
      <Fragment slot="header-left">
