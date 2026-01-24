@@ -53,7 +53,7 @@ dashboard-set.astro (strona Astro - SSR guard, initial data fetch)
         │   │   │   └── Ticker (komunikaty specjalne, marquee)
         │   │   └── AddStopButton (widoczny gdy items.length < 6)
         │   ├── AddStopDialog (modal)
-        │   │   └── StopSearchAutocomplete (input + datalist)
+        │   │   └── Autocomplete (ARIA Combobox Pattern)
         │   └── ConfirmDialog (modal usuwania)
         ├── GlobalPreloader (globalny, część AppLayout, poza main)
         └── ToastStack (globalny, część AppLayout, poza main)
@@ -74,9 +74,9 @@ dashboard-set.astro (strona Astro - SSR guard, initial data fetch)
 - Weryfikacja własności zestawu przez użytkownika
 - Fetch początkowych danych:
   - `GET /api/sets/{setId}/items` - lista przystanków w zestawie
-  - `GET /api/ztm/stops` - cache przystanków do wyszukiwarki (opcjonalnie, można fetchować client-side)
   - `GET /api/ztm/sets/{setId}/stops` - metadane przystanków (nazwy, kody)
   - `GET /api/ztm/sets/{setId}/departures` - początkowe dane odjazdów
+  - **UWAGA:** `GET /api/ztm/stops` NIE jest fetchowany w SSR - dane są ładowane client-side przez `stopsStore` (lazy loading w tle)
 - Renderowanie `SetDashboardView.svelte` z danymi jako props
 
 **Obsługiwane interakcje:** Brak (tylko SSR)
@@ -142,8 +142,26 @@ interface SetDashboardViewProps {
   initialItems: SetItemDTO[];
   initialStops: ZtmSetStopDTO[];
   initialDepartures: GetZtmSetDeparturesResponse;
-  allStops: ZtmStopDTO[]; // do wyszukiwarki
+  // allStops NIE jest przekazywany jako props - ładowany przez stopsStore
 }
+```
+
+**Lifecycle hooks:**
+
+```svelte
+<script>
+  import { onMount } from 'svelte';
+  import { stopsStore } from '$lib/stores/stops.store';
+
+  // ... props
+
+  onMount(() => {
+    // Rozpocznij ładowanie przystanków W TLE
+    // Widok renderuje się natychmiast z initialDepartures
+    // Dane będą gotowe gdy użytkownik kliknie "Dodaj przystanek"
+    stopsStore.load();
+  });
+</script>
 ```
 
 ---
@@ -368,36 +386,39 @@ interface AddStopButtonProps {
 
 ### 4.9 `AddStopDialog.svelte`
 
-**Opis:** Dialog (modal) do wyszukiwania i dodawania nowego przystanku do zestawu. Wykorzystuje `Dialog` (komponent bazowy) i zawiera wyszukiwarkę z autouzupełnianiem opartą o `<datalist>`.
+**Opis:** Dialog (modal) do wyszukiwania i dodawania nowego przystanku do zestawu. Wykorzystuje `Dialog` (komponent bazowy) i komponent `Autocomplete` z obsługą stanów ładowania przystanków z `stopsStore`.
 
 **Główne elementy:**
 
 - `Dialog` (komponent bazowy) z tytułem "Dodaj przystanek"
-- `StopSearchAutocomplete` - input search + datalist
-- Lista wyników wyszukiwania (opcjonalnie rozwinięta lista poniżej inputu)
-- `Button` Dodaj (submit) + Anuluj (close)
-- Komunikat błędu (jeśli POST fail)
+- **3 stany w zależności od `$stopsStore.status`:**
+  - **`loading`**: Skeleton/spinner z komunikatem "Ładowanie przystanków..."
+  - **`ready`**: Komponent `Autocomplete` z pełną listą przystanków
+  - **`error`**: Komunikat błędu + przycisk "Spróbuj ponownie" (wywołujący `stopsStore.retry()`)
+- Przyciski: "Dodaj" (submit, widoczny tylko w stanie `ready`) + "Anuluj" (close)
 
 **Obsługiwane interakcje:**
 
-- Wpisywanie w input → filtrowanie wyników (autocomplete)
-- Wybór wyniku z datalist → ustawienie wybranego stop_id
-- Kliknięcie "Dodaj" → POST `/api/sets/{setId}/items` z { stop_id }
+- **Otwarcie dialogu:** Sprawdzenie `$stopsStore.status` - jeśli `idle` lub `error`, wywołanie `stopsStore.load()`
+- Wpisywanie w Autocomplete → client-side filtrowanie wyników (debouncing 300ms)
+- Wybór wyniku z listy → ustawienie wybranego `stop_id`
+- Kliknięcie "Dodaj" → POST `/api/sets/{setId}/items` z `{ stop_id }`
 - Kliknięcie "Anuluj" lub Escape → zamknięcie dialogu
 - Po sukcesie POST → zamknięcie dialogu, toast sukcesu, odświeżenie widoku
+- W stanie `error`: kliknięcie "Spróbuj ponownie" → `stopsStore.retry()`
 
 **Obsługiwana walidacja:**
 
 - Pole wymagane (nie można dodać pustego)
-- Walidacja wyboru (stop_id musi być wybrany z listy)
+- Walidacja wyboru (`stop_id` musi być wybrany z listy)
 - Obsługa błędów API:
   - `409 Conflict` - przystanek już istnieje w zestawie
   - `400 Bad Request` z `MAX_ITEMS_PER_SET_EXCEEDED` - przekroczony limit 6
 
 **Typy:**
 
-- `ZtmStopDTO[]` - lista wszystkich przystanków (do wyszukiwania)
-- `CreateSetItemCommand` - request body { stop_id: number }
+- `StopsState` - stan store'a z przystankami (idle/loading/ready/error)
+- `CreateSetItemCommand` - request body `{ stop_id: number }`
 - `CreateSetItemResponse` - response z API
 
 **Propsy:**
@@ -406,49 +427,235 @@ interface AddStopButtonProps {
 interface AddStopDialogProps {
   isOpen: boolean;
   setId: string;
-  allStops: ZtmStopDTO[];
   onClose: () => void;
   onSuccess: (response: CreateSetItemResponse) => void;
+  // allStops NIE jest przekazywany jako props - pobierany z stopsStore
 }
+```
+
+**Przykładowa implementacja:**
+
+```svelte
+<script lang="ts">
+  import { stopsStore } from '$lib/stores/stops.store';
+  import Autocomplete from './base/Autocomplete.svelte';
+  import Dialog from './base/Dialog.svelte';
+
+  export let isOpen = false;
+  export let setId: string;
+  export let onClose: () => void;
+  export let onSuccess: (response: CreateSetItemResponse) => void;
+
+  $: stopsState = $stopsStore;
+
+  // Gdy dialog jest otwierany a dane nie są załadowane - spróbuj załadować
+  $: if (isOpen && stopsState.status === 'idle') {
+    stopsStore.load();
+  }
+
+  async function handleSelect(stopId: number) {
+    // ... logika POST /api/sets/{setId}/items
+  }
+</script>
+
+<Dialog bind:open={isOpen} title="Dodaj przystanek">
+  {#if stopsState.status === 'loading'}
+    <div class="dialog-loading">
+      <span class="theme-icon">progress_activity</span>
+      <p>Ładowanie przystanków...</p>
+    </div>
+  {:else if stopsState.status === 'error'}
+    <div class="dialog-error">
+      <p>Nie udało się załadować listy przystanków.</p>
+      <button on:click={() => stopsStore.retry()}>Spróbuj ponownie</button>
+    </div>
+  {:else if stopsState.status === 'ready'}
+    <Autocomplete
+      items={stopsState.stops}
+      on:select={(e) => handleSelect(e.detail.stopId)}
+    />
+  {/if}
+</Dialog>
 ```
 
 ---
 
-### 4.10 `StopSearchAutocomplete.svelte`
+### 4.10 `Autocomplete.svelte` (komponent bazowy)
 
-**Opis:** Komponent wyszukiwarki przystanków z autouzupełnianiem. W wersji minimalnej wykorzystuje `<input type="search">` połączone z `<datalist>`. Wynik minimalnie: `stopShortName + stopCode`.
+**Opis:** Uniwersalny komponent wyszukiwarki z autouzupełnianiem implementujący ARIA Combobox Pattern. Wykonuje client-side filtering po załadowanych danych z debouncing dla wydajności. Wspiera keyboard navigation (↑↓, Enter, Esc) i highlightowanie dopasowanych fragmentów.
+
+**Lokalizacja:** `src/components/base/Autocomplete.svelte`
 
 **Główne elementy:**
 
-- `<input type="search">` z attributem `list`
-- `<datalist>` z opcjami (filtrowanymi natywnie)
-- `<datalist>` zawiera wszystkie opcje, filtrowanie jest natywnie po stronie przeglądarki
-- Każda opcja: `{stopShortName} ({stopCode})` lub `{stopName} ({stopCode})`
-- Wartością opcji jest `stopId`
+- `<input>` z `role="combobox"` i właściwymi atrybutami ARIA
+- `<ul role="listbox">` z wynikami (max 10 pozycji)
+- Highlightowanie dopasowanych fragmentów w wynikach
+- Keyboard navigation (strzałki góra/dół, Enter, Escape)
+- Debouncing 300ms dla wydajności
+- Min. 2 znaki do rozpoczęcia wyszukiwania
+
+**ARIA Attributes:**
+
+```html
+<input
+  type="text"
+  role="combobox"
+  aria-expanded="{isOpen}"
+  aria-controls="autocomplete-listbox"
+  aria-autocomplete="list"
+  aria-activedescendant="{activeDescendantId}"
+/>
+<ul role="listbox" id="autocomplete-listbox" aria-label="Wyniki wyszukiwania">
+  <li role="option" aria-selected="{selected}">...</li>
+</ul>
+```
 
 **Obsługiwane interakcje:**
 
-- Wpisywanie w input → natywne filtrowanie opcji
-- Wybór opcji z datalist → ustawienie wartości i `selectedStopId`
-- Binding dwukierunkowy z rodzicem
+- **Wpisywanie w input:**
+  - Debouncing 300ms
+  - Min. 2 znaki → filtrowanie wyników po stronie klienta
+  - Mniej niż 2 znaki → ukrycie listy wyników
+  - Highlightowanie dopasowanych fragmentów (case-insensitive)
+  - Max 10 wyników wyświetlanych jednocześnie
+
+- **Keyboard navigation:**
+  - `ArrowDown` → fokus na następny element listy
+  - `ArrowUp` → fokus na poprzedni element listy
+  - `Enter` → wybór podświetlonego elementu, zamknięcie listy, wywołanie `onSelect`
+  - `Escape` → zamknięcie listy bez wyboru
+
+- **Mouse navigation:**
+  - Hover → podświetlenie elementu
+  - Click → wybór elementu, zamknięcie listy, wywołanie `onSelect`
+
+- **Focus management:**
+  - Otwarcie listy → fokus pozostaje na input
+  - Wybór elementu → fokus wraca na input
+  - `aria-activedescendant` wskazuje aktywny element w listbox
 
 **Obsługiwana walidacja:**
 
-- Walidacja wyboru (czy wybrano opcję z listy, nie wpisano ręcznie)
+- Min. długość zapytania (2 znaki)
+- Walidacja wyboru (czy wybrano element z listy)
+- Czyszczenie inputu po wyborze (opcjonalne)
 
 **Typy:**
 
-- `ZtmStopDTO[]` - lista przystanków do wyszukiwania
-- `number | null` - wybrany stop_id
+```typescript
+interface AutocompleteItem {
+  id: number | string;
+  label: string; // Główny tekst do wyświetlenia
+  secondaryLabel?: string; // Opcjonalny tekst dodatkowy (np. kod przystanku)
+  searchableText: string; // Tekst używany do filtrowania
+}
+
+interface AutocompleteProps {
+  items: AutocompleteItem[];
+  placeholder?: string;
+  minChars?: number; // Default: 2
+  maxResults?: number; // Default: 10
+  debounceMs?: number; // Default: 300
+  clearOnSelect?: boolean; // Default: false
+  onSelect: (item: AutocompleteItem) => void;
+}
+```
 
 **Propsy:**
 
 ```typescript
-interface StopSearchAutocompleteProps {
-  allStops: ZtmStopDTO[];
-  selectedStopId: number | null;
-  onSelect: (stopId: number) => void;
+interface AutocompleteProps {
+  items: AutocompleteItem[]; // Lista elementów do przeszukiwania
+  placeholder?: string; // Placeholder dla inputu (default: "Szukaj...")
+  minChars?: number; // Min. liczba znaków (default: 2)
+  maxResults?: number; // Max. wyników (default: 10)
+  debounceMs?: number; // Debouncing (default: 300)
+  clearOnSelect?: boolean; // Czy czyścić input po wyborze (default: false)
+  onSelect: (item: AutocompleteItem) => void; // Callback przy wyborze elementu
 }
+```
+
+**Implementacja filtrowania:**
+
+```typescript
+function filterItems(query: string, items: AutocompleteItem[]): AutocompleteItem[] {
+  if (query.length < minChars) return [];
+
+  const lowerQuery = query.toLowerCase();
+
+  return items.filter((item) => item.searchableText.toLowerCase().includes(lowerQuery)).slice(0, maxResults);
+}
+```
+
+**Highlightowanie dopasowań:**
+
+```typescript
+function highlightMatch(text: string, query: string): string {
+  if (!query) return text;
+
+  const regex = new RegExp(`(${escapeRegex(query)})`, "gi");
+  return text.replace(regex, "<mark>$1</mark>");
+}
+```
+
+**Styling (zgodnie z design system):**
+
+```css
+/* Input - outlined */
+input {
+  background: var(--theme--bg-color);
+  color: var(--theme--accent-color);
+  border: 1px solid var(--theme--accent-color-dim);
+  border-radius: 0; /* noradius */
+  font-family: "Departure Mono", monospace;
+  padding: var(--theme--spacing);
+}
+
+/* Listbox */
+ul[role="listbox"] {
+  background: var(--theme--bg-color);
+  border: 1px solid var(--theme--accent-color-dim);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* Option */
+li[role="option"] {
+  padding: var(--theme--spacing);
+  cursor: pointer;
+}
+
+li[role="option"]:hover,
+li[role="option"][aria-selected="true"] {
+  background: var(--theme--accent-color-dim);
+  color: var(--theme--bg-color);
+}
+
+/* Highlightowanie dopasowań */
+mark {
+  background: transparent;
+  font-weight: bold;
+  color: inherit;
+}
+```
+
+**Użycie w AddStopDialog:**
+
+```svelte
+<Autocomplete
+  items={stopsState.stops.map(stop => ({
+    id: stop.stopId,
+    label: stop.stopShortName,
+    secondaryLabel: stop.stopCode,
+    searchableText: `${stop.stopShortName} ${stop.stopCode} ${stop.stopName || ''}`
+  }))}
+  placeholder="Wpisz nazwę lub kod przystanku..."
+  on:select={(e) => handleStopSelect(e.detail.id)}
+/>
 ```
 
 ---
@@ -586,7 +793,7 @@ export interface SetDashboardInitialData {
   items: SetItemDTO[];
   stops: ZtmSetStopDTO[];
   departures: GetZtmSetDeparturesResponse;
-  allStops: ZtmStopDTO[];
+  // allStops NIE jest przekazywany - ładowany przez stopsStore client-side
   sets: SetDTO[]; // wszystkie zestawy użytkownika (do SetSelect)
 }
 
@@ -656,7 +863,7 @@ let state: SetDashboardState = {
 
 ### 6.2 Globalny stan UI (Svelte stores)
 
-Wykorzystywane istniejące stores:
+Wykorzystywane stores:
 
 - **`globalLoadingStore`** (z `src/lib/stores/global-loading.store.ts`):
   - Zarządza stanem pełnoekranowego preloadera
@@ -669,6 +876,115 @@ Wykorzystywane istniejące stores:
   - `ToastStack` w `AppLayout` subskrybuje ten store i wyświetla toasty
   - Toasty sukces/info znikają automatycznie po 3s
   - Toasty error/warning wymagają ręcznego zamknięcia
+
+- **`stopsStore`** (z `src/lib/stores/stops.store.ts`) - **NOWY STORE**:
+  - Zarządza stanem listy przystanków ZTM z lazy loading
+  - Używany przez `AddStopDialog` dla komponentu `Autocomplete`
+  - **Strategia ładowania:** Progressive Loading z Lazy Initialization
+
+**Implementacja `stopsStore`:**
+
+```typescript
+// src/lib/stores/stops.store.ts
+import { writable } from "svelte/store";
+import type { ZtmStop } from "../ztm-types";
+
+type StopsState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "ready"; stops: ZtmStop[] }
+  | { status: "error"; error: string };
+
+function createStopsStore() {
+  const { subscribe, set, update } = writable<StopsState>({ status: "idle" });
+
+  let fetchPromise: Promise<void> | null = null;
+
+  return {
+    subscribe,
+
+    // Lazy load - wywołane gdy potrzebne (onMount w SetDashboardView)
+    async load() {
+      // Zapobiegaj duplikacji requestów
+      if (fetchPromise) return fetchPromise;
+
+      update((state) => (state.status === "idle" ? { status: "loading" } : state));
+
+      fetchPromise = fetch("/api/ztm/stops")
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to fetch stops");
+          return res.json();
+        })
+        .then((data) => {
+          set({ status: "ready", stops: data.stops });
+        })
+        .catch((err) => {
+          set({ status: "error", error: err.message });
+        })
+        .finally(() => {
+          fetchPromise = null;
+        });
+
+      return fetchPromise;
+    },
+
+    retry() {
+      set({ status: "idle" });
+      return this.load();
+    },
+  };
+}
+
+export const stopsStore = createStopsStore();
+```
+
+**Strategia ładowania przystanków:**
+
+1. **Dashboard renderuje się NATYCHMIAST** po zalogowaniu (bez czekania na stops)
+2. **Preload w tle:** `SetDashboardView.svelte` wywołuje `stopsStore.load()` w `onMount()` — NIE blokuje renderowania
+3. **Dialog obsługuje 3 stany:**
+   - `loading`: skeleton/spinner w dialogu z komunikatem "Ładowanie przystanków..."
+   - `ready`: komponent `Autocomplete` z pełną listą przystanków
+   - `error`: komunikat błędu + przycisk "Spróbuj ponownie" (wywołujący `stopsStore.retry()`)
+4. **Użytkownik nigdy nie czeka** — może przeglądać dashboard podczas ładowania przystanków w tle
+
+**Diagram przepływu:**
+
+```
+┌─────────────────────────────────────────────┐
+│ 1. User → /dashboard/{setId}                │
+│    ✓ Dashboard renderuje się NATYCHMIAST    │
+└──────────────┬──────────────────────────────┘
+               │
+               ▼
+┌─────────────────────────────────────────────┐
+│ 2. onMount()                                │
+│    → stopsStore.load() w tle                │
+│    (NIE czeka na odpowiedź)                 │
+└──────────────┬──────────────────────────────┘
+               │
+               ├─────────────────────────┐
+               ▼                         ▼
+     ┌──────────────────┐      ┌─────────────────┐
+     │ Użytkownik       │      │ W TLE:          │
+     │ przegląda        │      │ GET /api/ztm/   │
+     │ karty odjazdów   │      │ stops            │
+     └────────┬─────────┘      └────────┬────────┘
+              │                         │
+              │ Klik "Dodaj tablicę"    │
+              ▼                         ▼
+     ┌─────────────────────────────────────┐
+     │ Dialog sprawdza stan:               │
+     │ - LOADING → spinner                 │
+     │ - READY → autocomplete              │
+     │ - ERROR → retry button              │
+     └─────────────────────────────────────┘
+```
+
+**Opcjonalne ulepszenia (post-MVP):**
+
+- **SessionStorage cache z TTL (24h):** Dla wielokrotnych wizyt w tej samej sesji przeglądarki
+- **Server-side search endpoint:** `GET /api/ztm/search/stops?q={query}` jako fallback dla bardzo dużych list (>1000 przystanków)
 
 ### 6.3 Logika cyklu odświeżania (60s)
 
@@ -860,8 +1176,9 @@ Widok integruje się z następującymi endpointami:
 **Workflow:**
 
 1. Załadowanie pełnej listy przystanków (cache 6h po stronie API)
-2. Przekazanie do `AddStopDialog` jako props `allStops`
-3. Filtrowanie w `StopSearchAutocomplete` po stronie klienta
+2. Załadowanie do `stopsStore` (client-side, lazy loading w `SetDashboardView.onMount()`)
+3. Filtrowanie w `Autocomplete` po stronie klienta (debouncing 300ms, min. 2 znaki)
+4. `AddStopDialog` obsługuje stany store'a: loading/ready/error
 
 **Obsługa błędów:**
 
@@ -1049,9 +1366,14 @@ Każdy element `results`:
 **Workflow:**
 
 1. Otwarcie `AddStopDialog` (`state.isAddDialogOpen = true`)
-2. Użytkownik wpisuje w `StopSearchAutocomplete` → filtrowanie wyników
-3. Wybór przystanku z listy → ustawienie `selectedStopId`
-4. Kliknięcie "Dodaj":
+2. Dialog sprawdza `$stopsStore.status`:
+   - Jeśli `idle` lub `error` → wywołanie `stopsStore.load()`
+   - Jeśli `loading` → wyświetlenie spinnera "Ładowanie przystanków..."
+   - Jeśli `ready` → wyświetlenie komponentu `Autocomplete`
+   - Jeśli `error` → wyświetlenie przycisku "Spróbuj ponownie" (wywołującego `stopsStore.retry()`)
+3. Użytkownik wpisuje w `Autocomplete` → client-side filtrowanie wyników (debouncing 300ms, min. 2 znaki, max 10 wyników)
+4. Wybór przystanku z listy (keyboard navigation: ↑↓, Enter, Esc) → ustawienie `selectedStopId`
+5. Kliknięcie "Dodaj":
    - Walidacja: `selectedStopId` nie może być null
    - Wywołanie `setGlobalLoading(true)`
    - `POST /api/sets/{setId}/items` z `{ stop_id: selectedStopId }`
@@ -1063,14 +1385,25 @@ Każdy element `results`:
    - Błąd:
      - Toast error z komunikatem (409: "już istnieje", 400: "limit", inne)
    - Wywołanie `setGlobalLoading(false)`
-5. Zamknięcie dialogu
+6. Zamknięcie dialogu
 
 **Walidacja:**
 
 - Wybór z listy (nie puste pole)
+- Min. 2 znaki w wyszukiwarce (walidacja client-side w `Autocomplete`)
 - Walidacja po stronie API (409 conflict, 400 max exceeded)
 
-**Obsługa błędów:** Toasty z komunikatami błędów z API
+**Obsługa błędów:**
+
+- Błędy ładowania przystanków: przycisk retry w dialogu
+- Błędy POST: toasty z komunikatami błędów z API
+
+**Komponenty:**
+
+- `AddStopButton` → trigger
+- `AddStopDialog` → logika POST, walidacja i obsługa stanów `stopsStore`
+- `Autocomplete` (komponent bazowy) → wybór przystanku z client-side filtering
+- `stopsStore` → zarządzanie danymi przystanków (lazy loading)
 
 ---
 
@@ -1595,59 +1928,138 @@ Każdy element `results`:
 
 ---
 
-### Krok 10: Stworzenie komponentu `AddStopDialog.svelte`
+### Krok 10: Stworzenie store'a `stopsStore`
 
-**Zadanie:** Stworzyć `src/components/AddStopDialog.svelte`
+**Zadanie:** Stworzyć `src/lib/stores/stops.store.ts`
 
 **Szczegóły:**
 
-- Props: `isOpen`, `setId`, `allStops`, `onClose`, `onSuccess`
+- Implementacja według wzoru z sekcji 6.2 (Globalny stan UI - stopsStore)
+- Typ stanu: `type StopsState = { status: 'idle' } | { status: 'loading' } | { status: 'ready'; stops: ZtmStop[] } | { status: 'error'; error: string }`
+- Store funkcje:
+  - `subscribe` - standardowa subskrypcja Svelte
+  - `load()` - async funkcja ładująca przystanki z `/api/ztm/stops`
+  - `retry()` - reset stanu do `idle` i ponowne wywołanie `load()`
+- Zapobieganie duplikacji requestów przez `fetchPromise`
+- Obsługa błędów fetch z zapisem komunikatu
+
+**Weryfikacja:**
+
+- Store inicjalizuje się ze stanem `{ status: 'idle' }`
+- Wywołanie `load()` ustawia stan `loading`, a potem `ready` z danymi lub `error` z błędem
+- Wywołanie `retry()` resetuje stan i ponownie ładuje dane
+- Wielokrotne równoczesne wywołanie `load()` nie powoduje duplikacji requestów (ten sam `fetchPromise`)
+- Błędy są poprawnie catch'owane i zapisywane w stanie `error`
+
+---
+
+### Krok 10a: Dodanie ładowania przystanków w `SetDashboardView.svelte`
+
+**Zadanie:** Dodać `onMount()` w `SetDashboardView.svelte` z wywołaniem `stopsStore.load()`
+
+**Szczegóły:**
+
+- Import `onMount` z `svelte` i `stopsStore` z `$lib/stores/stops.store`
+- W `onMount()` callback: wywołanie `stopsStore.load()` BEZ await (lazy loading w tle)
+- Brak obsługi błędów w tym miejscu - błędy obsługiwane w `AddStopDialog`
+
+**Weryfikacja:**
+
+- Po zamontowaniu widoku w konsoli Network widoczny jest request `GET /api/ztm/stops`
+- Request rozpoczyna się w tle, NIE blokuje renderowania widoku
+- Dane są dostępne w store dla `AddStopDialog`
+
+---
+
+### Krok 10b: Aktualizacja `AddStopDialog.svelte`
+
+**Zadanie:** Zaktualizować `src/components/AddStopDialog.svelte` (jeśli już istnieje) lub stworzyć od nowa
+
+**Szczegóły:**
+
+- Props: `isOpen`, `setId`, `onClose`, `onSuccess` (BEZ `allStops` - używa `stopsStore`)
+- Import `stopsStore` z `$lib/stores/stops.store`
+- Reaktywny dostęp do stanu: `$: stopsState = $stopsStore`
+- Sprawdzanie stanu przy otwarciu dialogu: `$: if (isOpen && stopsState.status === 'idle') { stopsStore.load(); }`
 - Bazuje na `Dialog.svelte` (istniejący)
 - Tytuł: "Dodaj przystanek"
-- Content:
-  - `StopSearchAutocomplete` (binding: `selectedStopId`)
-  - Przyciski: "Dodaj" (submit) + "Anuluj" (close)
+- Content zależny od `stopsState.status`:
+  - **`loading`**:
+    - Spinner (ikona Material Symbols: `progress_activity` z animacją)
+    - Tekst: "Ładowanie przystanków..."
+  - **`error`**:
+    - Komunikat: "Nie udało się załadować listy przystanków."
+    - Szczegóły błędu: `{stopsState.error}`
+    - Przycisk: "Spróbuj ponownie" → `on:click={() => stopsStore.retry()}`
+  - **`ready`**:
+    - Komponent `Autocomplete` z transformacją danych:
+      ```svelte
+      <Autocomplete
+        items={stopsState.stops.map(stop => ({
+          id: stop.stopId,
+          label: stop.stopShortName,
+          secondaryLabel: stop.stopCode,
+          searchableText: `${stop.stopShortName} ${stop.stopCode} ${stop.stopName || ''}`
+        }))}
+        placeholder="Wpisz nazwę lub kod przystanku..."
+        on:select={(e) => handleStopSelect(e.detail.id)}
+      />
+      ```
+    - Przyciski: "Dodaj" (submit, widoczny tylko gdy `selectedStopId !== null`) + "Anuluj" (close)
 - Logika submit:
   - Walidacja: `selectedStopId !== null`
   - Wywołanie `setGlobalLoading(true)`
   - `POST /api/sets/{setId}/items` z `{ stop_id: selectedStopId }`
-  - Sukces → `onSuccess(response)`, `onClose()`
-  - Błąd → toast error
+  - Sukces → `onSuccess(response)`, `onClose()`, reset `selectedStopId`
+  - Błąd → toast error z komunikatem
   - `setGlobalLoading(false)`
 
 **Weryfikacja:**
 
-- Dialog otwiera się po kliknięciu przycisku
-- Wyszukiwarka działa (filtrowanie)
-- Dodanie przystanku → sukces → zamknięcie dialogu + aktualizacja widoku
+- Dialog otwiera się po kliknięciu przycisku "Dodaj przystanek"
+- Stan `loading` pokazuje spinner z komunikatem
+- Stan `error` pokazuje przycisk "Spróbuj ponownie", który działa (ponowne ładowanie)
+- Stan `ready` pokazuje autocomplete z działającą wyszukiwarką
+- Wyszukiwarka filtruje wyniki client-side (debouncing 300ms, min. 2 znaki)
+- Wybór przystanku uaktywnia przycisk "Dodaj"
+- Dodanie przystanku → sukces → zamknięcie dialogu + toast + aktualizacja widoku
 
 ---
 
-### Krok 11: Stworzenie komponentu `StopSearchAutocomplete.svelte`
+### Krok 11: Stworzenie komponentu `Autocomplete.svelte`
 
-**Zadanie:** Stworzyć `src/components/StopSearchAutocomplete.svelte`
+**Zadanie:** Stworzyć `src/components/base/Autocomplete.svelte`
 
 **Szczegóły:**
 
-- Props: `allStops`, `selectedStopId`, `onSelect`
-- Layout:
-  - `<input type="search" list="stops-datalist">`
-  - `<datalist id="stops-datalist">` z opcjami
-- Filtrowanie:
-  - Reaktywne filtrowanie `allStops` po wartości inputu
-  - Matching: nazwa przystanku lub kod (case-insensitive)
-- Każda opcja w datalist:
-  - Value: `{stop.stopId}`
-  - Label: `{stop.stopShortname} - {stop.stopName} ({stop.stopCode})`
-- Binding:
-  - `bind:value` na input
-  - Parsowanie wybranej wartości → `onSelect(stopId)`
+- Implementacja według wzoru z sekcji 4.10 (Autocomplete komponent bazowy)
+- ARIA Combobox Pattern:
+  - `<input role="combobox">` z atrybutami `aria-expanded`, `aria-controls`, `aria-autocomplete`, `aria-activedescendant`
+  - `<ul role="listbox">` z opcjami `<li role="option">`
+- Client-side filtering:
+  - Debouncing 300ms
+  - Min. 2 znaki do rozpoczęcia wyszukiwania
+  - Max. 10 wyników wyświetlanych jednocześnie
+  - Case-insensitive matching
+- Keyboard navigation:
+  - `ArrowDown` → następny element
+  - `ArrowUp` → poprzedni element
+  - `Enter` → wybór podświetlonego elementu
+  - `Escape` → zamknięcie listy
+- Highlightowanie dopasowanych fragmentów przez `<mark>`
+- Styling zgodny z design system (outlined, noradius, Departure Mono, clickable, focusable)
+- Props: `items: AutocompleteItem[]`, `placeholder`, `minChars`, `maxResults`, `debounceMs`, `clearOnSelect`, `onSelect`
 
 **Weryfikacja:**
 
-- Input pokazuje autouzupełnianie po wpisaniu
-- Wybór opcji → `selectedStopId` zostaje ustawiony
-- Filtrowanie działa po nazwie i kodzie
+- Autocomplete renderuje się poprawnie
+- Wpisywanie min. 2 znaków pokazuje wyniki (max 10)
+- Keyboard navigation działa (strzałki, Enter, Escape)
+- Mouse navigation działa (hover, click)
+- Wybór elementu wywołuje `onSelect` z poprawnym obiektem
+- Highlightowanie dopasowań jest widoczne
+- Focus management zgodny z ARIA (`aria-activedescendant`)
+- Styling zgodny z design system
 
 ---
 
@@ -1884,7 +2296,7 @@ Każdy element `results`:
   - Cache przystanków (`GET /api/ztm/stops`) na 6h (już zaimplementowane w API)
   - Cache departures na 20s (już zaimplementowane w API)
   - Fetch departures tylko gdy widok jest visible (opcjonalnie: `document.visibilityState`)
-  - Debounce wyszukiwarki (opcjonalnie: w `StopSearchAutocomplete`)
+  - Debounce wyszukiwarki (300ms w `Autocomplete` - już zaimplementowane)
 - **Responsive:**
   - `DashboardGrid` z `auto-fill, minmax(280px, 1fr)` (już w istniejącym komponencie)
   - Karty adaptują się do różnych szerokości ekranu

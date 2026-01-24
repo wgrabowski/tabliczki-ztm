@@ -103,8 +103,10 @@ Poniżej: widoki wymagane przez PRD + doprecyzowania z sesji planowania, wraz z 
     - `Ticker` dla komunikatów specjalnych (marquee).
     - Stan błędu per karta (po eskalacji 3 błędów odświeżania globalnego).
   - `AddStopDialog` (`<dialog>`):
-    - Wyszukiwarka z autouzupełnianiem (w wersji minimalnej: `input type="search"` połączone z `datalist`).
-    - Wynik minimalnie: `stopShortName + stopCode`.
+    - Obsługa 3 stanów ładowania przystanków (loading/ready/error) z `stopsStore`
+    - Komponent `Autocomplete` (ARIA Combobox Pattern) do wyszukiwania przystanków
+    - Client-side filtering z debouncing, keyboard navigation
+    - Wynik minimalnie: `stopShortName + stopCode`
   - `ConfirmDialog` dla usuwania karty (systemowy lub `<dialog>`).
   - **Uwaga**: `GlobalPreloader` i `ToastStack` są częścią `AppLayout`, nie tego widoku. Widok używa `setGlobalLoading()` i `toastsStore.addToast()` do zarządzania nimi.
 - **UX, dostępność i względy bezpieczeństwa**:
@@ -124,9 +126,9 @@ Poniżej: widoki wymagane przez PRD + doprecyzowania z sesji planowania, wraz z 
     - `POST /api/sets/{setId}/items`
     - `DELETE /api/sets/{setId}/items/{itemId}`
   - Dane ZTM (proxy aplikacji):
-    - `GET /api/ztm/stops` (cache w pamięci per sesja, odświeżenie cache przy starcie).
-    - `GET /api/ztm/sets/{setId}/departures` (jeden request per cykl, dane dla wszystkich kart).
-    - (Opcjonalnie wspierające) `GET /api/ztm/sets/{setId}/stops` (jeśli UI potrzebuje uzupełnienia metadanych przystanków dla kart).
+    - `GET /api/ztm/stops` (lazy loading client-side przez `stopsStore`, cache w store)
+    - `GET /api/ztm/sets/{setId}/departures` (jeden request per cykl, dane dla wszystkich kart)
+    - `GET /api/ztm/sets/{setId}/stops` (metadane przystanków dla kart)
 - **Powiązane wymagania / historyjki**: US-004, US-005, US-006, US-008, US-009, US-010, US-012.
 
 ### 2.4 Konto
@@ -296,7 +298,8 @@ Komponenty przekrojowe (używane w wielu widokach) oraz ich rola w architekturze
 - **SetSelect**: przełączanie zestawów, zsynchronizowane z URL.
 - **RefreshProgressBar**: globalny pasek odświeżania oparty o `<progress>` (determinate/indeterminate), z logiką resetu cyklu po zakończeniu requestu.
 - **StopCard**: główna karta monitoringu (odjazdy, ticker, ikony, scroll, akcje: usuń/TV).
-- **AddStopDialog + StopSearchAutocomplete**: wyszukiwarka w `<dialog>` z cache `stops` per sesja; minimalny wynik: `stopShortName + stopCode`.
+- **AddStopDialog**: dialog dodawania przystanku z obsługą stanów ładowania (`stopsStore`): loading/ready/error. Wykorzystuje `Autocomplete` do wyszukiwania przystanków.
+- **Autocomplete** (komponent bazowy): uniwersalny komponent wyszukiwania z autouzupełnianiem implementujący ARIA Combobox Pattern. Client-side filtering z debouncing, keyboard navigation, highlightowanie dopasowań.
 - **ErrorPage (app)**: wspólna strona błędu dla przypadków innych niż `401`, z CTA do dashboardu.
 - **TvScreen/TvErrorScreen**: TV view i jego pojedynczy ekran błędu (bez routingu).
 - **OfflineOverlay**: pełnoekranowa blokada UI w offline (mobile/PWA), automatycznie włącza/wyłącza się.
@@ -449,6 +452,7 @@ Założenie: aplikacja **nie korzysta z żadnej biblioteki UI**, ale posiada prz
 - **`TextInput`** (bazuje na `<input>`): `text/email/password/search` + stany walidacji.
 - **`ResetInput`** (bazuje na `<input type="reset">`): reset w mini-formularzach (np. edycja nazwy zestawu).
 - **`Select`** (bazuje na `<select>`): m.in. `SetSelect`.
+- **`Autocomplete`** (bazuje na `<input>` + `<ul>`): uniwersalny komponent wyszukiwania z autouzupełnianiem. Implementuje ARIA Combobox Pattern z pełną dostępnością. Client-side filtering z debouncing, keyboard navigation (↑↓ Enter Esc), highlightowanie dopasowań. Używany w `AddStopDialog`.
 - **`Dialog`** (bazuje na `<dialog>`): wspólny układ + focus management; używany przez `AddStopDialog`, `CreateSet`, `ConfirmDialog`.
 - **`ProgressBar`** (bazuje na `<progress>`): dla `RefreshProgressBar` (determinate/indeterminate).
 - **`Toast` / `ToastStack`**: standard komunikatów (TTL wg zasad z planu). Zarządzany przez `toastsStore`, renderowany w `AppLayout`.
@@ -459,7 +463,7 @@ Założenie: aplikacja **nie korzysta z żadnej biblioteki UI**, ale posiada prz
 
 - **Uwierzytelnianie (US-001)** → `/login`, guardy SSR, redirect `401 → /login`, toasty błędów.
 - **Zestawy: create/rename/delete (US-002, US-003, US-008)** → `/dashboard` (dialog tworzenia, inline rename, akcja delete z potwierdzeniem, limity 6).
-- **Dodawanie przystanków (US-004)** → `/dashboard/{setId}` + `AddStopDialog` + cache `/api/ztm/stops`, limit 6 kart.
+- **Dodawanie przystanków (US-004)** → `/dashboard/{setId}` + `AddStopDialog` (z obsługą stanów `stopsStore`: loading/ready/error) + `Autocomplete` (ARIA Combobox Pattern, client-side filtering), lazy loading `/api/ztm/stops` w tle, limit 6 kart.
 - **Monitoring i odświeżanie (US-005, US-012)** → `/dashboard/{setId}` + `RefreshProgressBar` + eskalacja błędów + „Spróbuj ponownie” (reload).
 - **Przełączanie zestawów (US-006)** → `SetSelect` (zmiana URL, brak przeładowania pełnej strony w UX).
 - **TV (US-007)** → `/tv/{stopId}` + duża typografia + publiczny dostęp + ekran błędu.
