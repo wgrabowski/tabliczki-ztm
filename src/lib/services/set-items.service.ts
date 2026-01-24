@@ -92,3 +92,32 @@ export async function getAllSetItems(supabase: SupabaseClient, setId: string): P
     position: item.position,
   }));
 }
+
+/**
+ * Deletes a set item from the database
+ *
+ * Verifies that the item exists and belongs to the specified set.
+ * Database trigger may automatically reindex positions of remaining items.
+ *
+ * @param supabase - Supabase client instance
+ * @param setId - UUID of the set containing the item
+ * @param itemId - UUID of the item to delete
+ * @throws Error with code 'ITEM_NOT_FOUND' if item doesn't exist in this set
+ */
+export async function deleteSetItem(supabase: SupabaseClient, setId: string, itemId: string): Promise<void> {
+  const { data, error } = await supabase
+    .from("set_items")
+    .delete()
+    .eq("id", itemId)
+    .eq("set_id", setId) // Ensures item belongs to this specific set
+    .select()
+    .single();
+
+  if (error || !data) {
+    const notFoundError = new Error("ITEM_NOT_FOUND") as Error & {
+      code: "ITEM_NOT_FOUND";
+    };
+    notFoundError.code = "ITEM_NOT_FOUND";
+    throw notFoundError;
+  }
+}

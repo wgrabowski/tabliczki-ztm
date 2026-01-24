@@ -80,15 +80,18 @@
     - `400 Bad Request` with `MAX_ITEMS_PER_SET_EXCEEDED` when trigger rejects insert after 6 items.
     - `500 Internal Server Error` for unexpected errors.
 
-- **DELETE /api/sets/{setId}/items/{itemId}**
-  - Description: remove an item from the set.
+- **DELETE /api/sets/{setId}/items/{itemId}** ✅ IMPLEMENTED
+  - Description: remove an item from the set. Returns the updated list of remaining items.
   - URL Params: `setId` (UUID), `itemId` (UUID)
-  - Response: `{ items: [...], deleted_item_id: itemId }`
+  - Request body: _none_
+  - Response: `{ items: [{ id, set_id, stop_id, position }], deleted_item_id: itemId }`
   - Success: `200 OK`
   - Errors:
-    - `400 Bad Request` for invalid set ID or item ID format.
+    - `400 Bad Request` for invalid set ID or item ID format (not valid UUID v4).
     - `401 Unauthorized` when authentication fails.
-    - `404 Not Found` if set or item does not exist or doesn't belong to the user.
+    - `404 Not Found` with `SET_NOT_FOUND` if set does not exist or doesn't belong to the user.
+    - `404 Not Found` with `ITEM_NOT_FOUND` if item does not exist in this set or belongs to another set.
+    - `403 Forbidden` if RLS policy blocks access.
     - `500 Internal Server Error` for unexpected errors.
 
 ## 3. Authentication and Authorization
