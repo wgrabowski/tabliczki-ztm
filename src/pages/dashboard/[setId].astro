@@ -18,7 +18,8 @@ export const prerender = false;
 
 const result = await getUserId(Astro.locals.supabase);
 if (!result.success) {
-  return Astro.redirect("/auth/login");
+  const returnUrl = `${Astro.url.pathname}${Astro.url.search}`;
+  return Astro.redirect(`/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`);
 }
 
 // ============================================================================
@@ -57,7 +58,8 @@ try {
   });
 
   if (itemsResponse.status === 401) {
-    return Astro.redirect("/auth/login");
+    const returnUrl = `${Astro.url.pathname}${Astro.url.search}`;
+    return Astro.redirect(`/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`);
   }
 
   if (itemsResponse.status === 404) {

@@ -6,7 +6,7 @@
    * Displayed in the left slot of the header
    */
   function handleClick() {
-    window.location.href = "/auth/account";
+    window.location.href = "/account";
   }
 </script>
 

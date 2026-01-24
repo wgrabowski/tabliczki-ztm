@@ -1,9 +1,20 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import LoginForm from "../components/auth/LoginForm.svelte";
+import Layout from "../../layouts/Layout.astro";
+import LoginForm from "../../components/auth/LoginForm.svelte";
 
-// If user is already logged in, redirect to dashboard
-// This will be implemented when middleware is ready
+export const prerender = false;
+
+const rawReturnUrl = Astro.url.searchParams.get("returnUrl");
+const returnUrl =
+  rawReturnUrl && rawReturnUrl.startsWith("/") && !rawReturnUrl.startsWith("//") ? rawReturnUrl : "/dashboard";
+
+const {
+  data: { user },
+} = await Astro.locals.supabase.auth.getUser();
+
+if (user) {
+  return Astro.redirect(returnUrl);
+}
 ---
 
 <Layout>

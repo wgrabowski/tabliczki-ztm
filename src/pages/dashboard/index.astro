@@ -1,10 +1,10 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import AppLayout from "../layouts/AppLayout.svelte";
-import SetsDashboard from "../components/SetsDashboard.svelte";
-import AccountButton from "../components/AccountButton.svelte";
-import { getUserId } from "../lib/auth/get-user-id";
-import type { SetListResponse } from "../types";
+import Layout from "../../layouts/Layout.astro";
+import AppLayout from "../../layouts/AppLayout.svelte";
+import SetsDashboard from "../../components/SetsDashboard.svelte";
+import AccountButton from "../../components/AccountButton.svelte";
+import { getUserId } from "../../lib/auth/get-user-id";
+import type { SetListResponse } from "../../types";
 
 // Disable prerendering - this page requires dynamic data
 export const prerender = false;
@@ -12,7 +12,8 @@ export const prerender = false;
 // SSR Guard - check authentication
 const result = await getUserId(Astro.locals.supabase);
 if (!result.success) {
-  return Astro.redirect("/auth/login");
+  const returnUrl = `${Astro.url.pathname}${Astro.url.search}`;
+  return Astro.redirect(`/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`);
 }
 
 // Fetch sets data
@@ -27,7 +28,8 @@ try {
   });
 
   if (response.status === 401) {
-    return Astro.redirect("/auth/login");
+    const returnUrl = `${Astro.url.pathname}${Astro.url.search}`;
+    return Astro.redirect(`/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`);
   }
 
   if (!response.ok) {

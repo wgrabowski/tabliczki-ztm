@@ -7,6 +7,10 @@ declare global {
   namespace App {
     interface Locals {
       supabase: SupabaseClient<Database>;
+      user?: {
+        id: string;
+        email: string | null;
+      };
     }
   }
 }
@@ -14,12 +18,11 @@ declare global {
 interface ImportMetaEnv {
   readonly SUPABASE_URL: string;
   readonly SUPABASE_KEY: string;
-  readonly OPENROUTER_API_KEY: string;
   /**
-   * Optional: Development-only user ID for bypassing authentication
-   * WARNING: Only use in local development, never in production!
+   * Server-only: required for admin operations (e.g. delete user account).
    */
-  readonly DEV_USER_ID?: string;
+  readonly SUPABASE_SERVICE_ROLE_KEY?: string;
+  readonly OPENROUTER_API_KEY: string;
   // more env variables...
 }
 

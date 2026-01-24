@@ -1,6 +1,7 @@
 <script lang="ts">
   import Button from "../base/Button.svelte";
   import TextInput from "../base/TextInput.svelte";
+  import { onMount } from "svelte";
   import { toastsStore } from "../../lib/stores/toasts.store";
 
   /**
@@ -12,6 +13,15 @@
   let password: string = "";
   let isSubmitting: boolean = false;
   let formError: string = "";
+  let returnUrl: string = "/dashboard";
+  $: registerHref = `/auth/register?returnUrl=${encodeURIComponent(returnUrl)}`;
+
+  onMount(() => {
+    const raw = new URLSearchParams(window.location.search).get("returnUrl");
+    if (raw && raw.startsWith("/") && !raw.startsWith("//")) {
+      returnUrl = raw;
+    }
+  });
 
   // Client-side validation
   function validateForm(): boolean {
@@ -65,7 +75,7 @@
 
       // Success - redirect to dashboard
       toastsStore.addToast("success", "Zalogowano pomyślnie");
-      window.location.href = "/dashboard";
+      window.location.href = returnUrl;
     } catch (error) {
       console.error("Login error:", error);
       formError =
@@ -120,7 +130,7 @@
   <div class="form-footer">
     <p class="form-footer-text">
       Nie masz konta?
-      <a href="/auth/register" class="form-link">Zarejestruj się</a>
+      <a href={registerHref} class="form-link">Zarejestruj się</a>
     </p>
   </div>
 </form>

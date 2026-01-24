@@ -11,10 +11,6 @@ export type GetUserIdResult =
 /**
  * Gets the authenticated user ID from session or development override
  *
- * **Development Mode:**
- * - If DEV_USER_ID is set in .env, bypasses authentication and returns that ID
- * - Useful for local testing without managing JWT tokens
- *
  * **Production Mode:**
  * - Always validates JWT token from Supabase session
  * - Returns error if authentication fails
@@ -32,15 +28,6 @@ export type GetUserIdResult =
  * ```
  */
 export async function getUserId(supabase: SupabaseClient): Promise<GetUserIdResult> {
-  // Development mode: Use override user ID if provided
-  const devUserId = import.meta.env.DEV_USER_ID;
-  if (devUserId) {
-    console.warn(
-      `[DEV MODE] Using DEV_USER_ID: ${devUserId} - Authentication bypassed! Remove DEV_USER_ID in production.`
-    );
-    return { success: true, userId: devUserId };
-  }
-
   // Production mode: Validate JWT token
   const {
     data: { user },

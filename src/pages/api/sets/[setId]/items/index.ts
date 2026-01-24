@@ -53,7 +53,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
   }
 
   // 2. Check authentication
-  // Get user_id from session (or DEV_USER_ID in development mode)
+  // Get user_id from session
   // NEVER trust user_id from client input!
   const userIdResult = await getUserId(locals.supabase);
 
@@ -143,7 +143,7 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
   }
 
   // 2. Check authentication
-  // Get user_id from session (or DEV_USER_ID in development mode)
+  // Get user_id from session
   // NEVER trust user_id from client input!
   const userIdResult = await getUserId(locals.supabase);
 

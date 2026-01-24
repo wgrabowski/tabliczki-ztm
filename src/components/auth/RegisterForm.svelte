@@ -1,6 +1,7 @@
 <script lang="ts">
   import Button from "../base/Button.svelte";
   import TextInput from "../base/TextInput.svelte";
+  import { onMount } from "svelte";
   import { toastsStore } from "../../lib/stores/toasts.store";
 
   /**
@@ -13,6 +14,15 @@
   let confirmPassword: string = "";
   let isSubmitting: boolean = false;
   let formError: string = "";
+  let returnUrl: string = "/dashboard";
+  $: loginHref = `/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`;
+
+  onMount(() => {
+    const raw = new URLSearchParams(window.location.search).get("returnUrl");
+    if (raw && raw.startsWith("/") && !raw.startsWith("//")) {
+      returnUrl = raw;
+    }
+  });
 
   // Client-side validation
   function validateForm(): boolean {
@@ -75,9 +85,19 @@
         throw new Error(error.message || "Błąd rejestracji");
       }
 
-      // Success - redirect to login or dashboard
+      const data: { requires_email_confirmation?: boolean } = await response.json();
+
+      if (data.requires_email_confirmation) {
+        const message =
+          "Konto utworzone, ale wymaga potwierdzenia e-mail (w Supabase włącz Auto-confirm dla MVP).";
+        toastsStore.addToast("success", message);
+        window.location.href = `/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`;
+        return;
+      }
+
+      // Success - redirect to dashboard (or returnUrl)
       toastsStore.addToast("success", "Konto utworzone pomyślnie");
-      window.location.href = "/dashboard";
+      window.location.href = returnUrl;
     } catch (error) {
       console.error("Registration error:", error);
       formError =
@@ -145,7 +165,7 @@
   <div class="form-footer">
     <p class="form-footer-text">
       Masz już konto?
-      <a href="/auth/login" class="form-link">Zaloguj się</a>
+      <a href={loginHref} class="form-link">Zaloguj się</a>
     </p>
   </div>
 </form>
