@@ -106,7 +106,7 @@ export function mapDatabaseError(error: unknown): MappedError {
   // Generic database error - log details but return generic message
   console.error("Unexpected database error:", error);
   return {
-    code: "INTERNAL_ERROR" as ErrorCode,
+    code: "DATABASE_ERROR" as ErrorCode,
     message: "An unexpected error occurred",
     status: 500,
   };
