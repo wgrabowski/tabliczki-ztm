@@ -61,6 +61,36 @@ export function mapDatabaseError(error: { code: string; constraint: string; mess
     };
   }
 
+  // Duplicate stop_id in set - unique constraint violation
+  if (
+    error.code === "23505" &&
+    (error.constraint === "set_items_set_id_stop_id_uniq" || error.message?.includes("set_items_set_id_stop_id_uniq"))
+  ) {
+    return {
+      code: "SET_ITEM_ALREADY_EXISTS",
+      message: "This stop is already added to the set",
+      status: 409,
+    };
+  }
+
+  // Max items per set exceeded - trigger raises exception
+  if (error.message?.includes("MAX_ITEMS_PER_SET_EXCEEDED")) {
+    return {
+      code: "MAX_ITEMS_PER_SET_EXCEEDED",
+      message: "Maximum number of items (6) reached for this set",
+      status: 400,
+    };
+  }
+
+  // Item not found - custom error from service layer (for future DELETE)
+  if (error.code === "ITEM_NOT_FOUND" || error.message === "ITEM_NOT_FOUND") {
+    return {
+      code: "ITEM_NOT_FOUND",
+      message: "Item not found or access denied",
+      status: 404,
+    };
+  }
+
   // RLS policy rejection (edge case - should be handled by auth check first)
   if (error.code === "42501" || error.message?.includes("permission denied")) {
     return {

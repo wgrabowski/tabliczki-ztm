@@ -10,8 +10,8 @@
 
 ### Sets
 
-- **GET /api/sets**
-  - Description: list authenticated user’s sets (optionally paginated) along with metadata counts.
+- **GET /api/sets** ✅ IMPLEMENTED
+  - Description: list authenticated user's sets (optionally paginated) along with metadata counts.
   - Query params:
     - `include_items` (boolean, default `false`)
   - Request body: _none_
@@ -21,7 +21,7 @@
     - `401 Unauthorized` when JWT missing/invalid.
     - `403 Forbidden` if RLS blocks.
 
-- **POST /api/sets**
+- **POST /api/sets** ✅ IMPLEMENTED
   - Description: create a new set for the authenticated user.
   - Body: `{ name: string }`
   - Response: `{ sets: [...] , created_set: { id, name } }`
@@ -46,7 +46,7 @@
     - `409 Conflict` when trimmed name duplicates another set.
     - `500 Internal Server Error` for unexpected errors.
 
-- **DELETE /api/sets/{setId}**
+- **DELETE /api/sets/{setId}** ✅ IMPLEMENTED
   - Description: delete a set and its cascade items.
   - Response: `{ sets: [...], deleted_set_id: setId }`
   - Success: `204 No Content` (or `200` with payload)

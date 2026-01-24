@@ -59,3 +59,19 @@ export const deleteSetParamsSchema = z.object({
  * Type inference from the Zod schema
  */
 export type DeleteSetParamsInput = z.infer<typeof deleteSetParamsSchema>;
+
+/**
+ * Zod schema for creating a new set item (adding stop to set)
+ * Validates that the stop_id is a positive integer
+ */
+export const createSetItemCommandSchema = z.object({
+  stop_id: z
+    .number({ required_error: "Stop ID is required" })
+    .int("Stop ID must be an integer")
+    .positive("Stop ID must be a positive integer"),
+});
+
+/**
+ * Type inference from the Zod schema
+ */
+export type CreateSetItemCommandInput = z.infer<typeof createSetItemCommandSchema>;
