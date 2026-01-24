@@ -1535,7 +1535,6 @@ Każdy element `results`:
      - Toast error z komunikatem
    - Wywołanie `setGlobalLoading(false)`
 3. Zamknięcie dialogu
-4. (Opcjonalnie) Jeśli lista jest pusta (0 przystanków), pokazać komunikat "Brak przystanków w zestawie"
 
 **Walidacja:** Brak (potwierdzenie w dialogu)
 
