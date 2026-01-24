@@ -10,8 +10,6 @@
 
 ### Sets
 
-### Sets
-
 - **GET /api/sets**
   - Description: list authenticated user’s sets (optionally paginated) along with metadata counts.
   - Query params:
@@ -22,8 +20,6 @@
   - Errors:
     - `401 Unauthorized` when JWT missing/invalid.
     - `403 Forbidden` if RLS blocks.
-
-### Sets
 
 - **POST /api/sets**
   - Description: create a new set for the authenticated user.
