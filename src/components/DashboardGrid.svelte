@@ -12,9 +12,13 @@
 <style>
   .dashboard-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(calc(33% - var(--theme--spacing) * 12), 1fr));
-    grid-auto-rows: minmax(100px, 1fr);
+  
+    grid-template-columns: repeat(auto-fill, minmax(max(300px, calc((100% - 2 * calc(var(--theme--spacing) * 6)) / 3)), 1fr));
+    /* Wysokość dopasowana do zawartości */
+    grid-auto-rows: auto;
     gap: calc(var(--theme--spacing) * 6);
     width: 100%;
   }
+
+
 </style>

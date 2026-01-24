@@ -2,8 +2,12 @@
    Global Styles for Tabliczki ZTM
    ============================================================================ */
 
-/* Font Imports */
-@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200");
+/* Font Imports - Optimized Material Symbols
+   Used icons: account_circle, add, check, check_circle, close, dark_mode, 
+   dashboard_2_edit, delete, delete_forever, departure_board, edit, error, info, 
+   keyboard_arrow_down, keyboard_arrow_up, light_mode, logout, progress_activity, 
+   refresh, tv, visibility, warning (22 total) */
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=account_circle,add,check,check_circle,close,dark_mode,dashboard_2_edit,delete,delete_forever,departure_board,edit,error,info,keyboard_arrow_down,keyboard_arrow_up,light_mode,logout,progress_activity,refresh,tv,visibility,warning&display=swap");
 
 /* Departure Mono Font */
 @font-face {
@@ -43,7 +47,7 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: "Departure Mono", monospace;
+  font-family: "Departure Mono", "Courier New", Courier, monospace;
   background-color: var(--theme--bg-color);
   color: var(--theme--accent-color);
   line-height: 1.5;
@@ -54,7 +58,7 @@ button,
 input,
 select,
 textarea {
-  font-family: "Departure Mono", monospace;
+  font-family: "Departure Mono", "Courier New", Courier, monospace;
 }
 
 /* Global Theme Classes */

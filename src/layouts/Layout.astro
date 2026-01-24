@@ -17,6 +17,12 @@ const { title = "Tabliczki ZTM", description } = Astro.props;
     <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="generator" content={Astro.generator} />
     {description && <meta name="description" content={description} />}
+
+    <!-- Font Loading Optimization -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" href="/fonts/DepartureMono-Regular.woff2" as="font" type="font/woff2" crossorigin />
+
     <title>{title}</title>
   </head>
   <body>
