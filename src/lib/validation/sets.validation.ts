@@ -46,3 +46,16 @@ export const getSetsQuerySchema = z.object({
  * Type inference from the Zod schema
  */
 export type GetSetsQueryInput = z.infer<typeof getSetsQuerySchema>;
+
+/**
+ * Zod schema for validating setId URL parameter
+ * Used in DELETE and PATCH operations on /api/sets/{setId}
+ */
+export const deleteSetParamsSchema = z.object({
+  setId: z.string().uuid("Invalid set ID format"),
+});
+
+/**
+ * Type inference from the Zod schema
+ */
+export type DeleteSetParamsInput = z.infer<typeof deleteSetParamsSchema>;

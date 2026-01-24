@@ -68,6 +68,32 @@ export async function updateSet(
 }
 
 /**
+ * Deletes a set and all its associated items (cascade delete)
+ *
+ * @param supabase - Supabase client instance
+ * @param userId - User ID from authenticated session
+ * @param setId - UUID of the set to delete
+ * @throws Error with code 'SET_NOT_FOUND' if set doesn't exist or user doesn't own it
+ * @throws Error if database operation fails
+ */
+export async function deleteSet(supabase: SupabaseClient, userId: string, setId: string): Promise<void> {
+  // Delete set with ownership verification
+  // Using .select() to check if any rows were actually deleted
+  const { data, error } = await supabase.from("sets").delete().eq("id", setId).eq("user_id", userId).select();
+
+  if (error) {
+    throw error;
+  }
+
+  // Check if a record was actually deleted
+  if (!data || data.length === 0) {
+    const notFoundError = new Error("SET_NOT_FOUND") as Error & { code: "SET_NOT_FOUND" };
+    notFoundError.code = "SET_NOT_FOUND";
+    throw notFoundError;
+  }
+}
+
+/**
  * Retrieves all sets for a user with item counts
  *
  * @param supabase - Supabase client instance
