@@ -33,3 +33,16 @@ export const updateSetCommandSchema = z.object({
  * Type inference from the Zod schema
  */
 export type UpdateSetCommandInput = z.infer<typeof updateSetCommandSchema>;
+
+/**
+ * Zod schema for GET /api/sets query parameters
+ * Validates optional include_items boolean parameter
+ */
+export const getSetsQuerySchema = z.object({
+  include_items: z.coerce.boolean().optional().default(false),
+});
+
+/**
+ * Type inference from the Zod schema
+ */
+export type GetSetsQueryInput = z.infer<typeof getSetsQuerySchema>;
