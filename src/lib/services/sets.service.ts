@@ -1,0 +1,67 @@
+import type { SupabaseClient } from "../../db/supabase.client.ts";
+import type { SetDTO, SetEntity } from "../../types.ts";
+
+/**
+ * Creates a new set for a user
+ *
+ * @param supabase - Supabase client instance
+ * @param userId - User ID from authenticated session
+ * @param name - Set name (will be trimmed before insert)
+ * @returns The newly created set entity
+ * @throws Error if database operation fails (duplicate name, max sets exceeded, etc.)
+ */
+export async function createSet(supabase: SupabaseClient, userId: string, name: string): Promise<SetEntity> {
+  const { data, error } = await supabase.from("sets").insert({ name: name.trim(), user_id: userId }).select().single();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error("Failed to create set: no data returned");
+  }
+
+  return data;
+}
+
+/**
+ * Retrieves all sets for a user with item counts
+ *
+ * @param supabase - Supabase client instance
+ * @param userId - User ID from authenticated session
+ * @returns Array of SetDTO with item counts
+ * @throws Error if database operation fails
+ */
+export async function getAllUserSetsWithCounts(supabase: SupabaseClient, userId: string): Promise<SetDTO[]> {
+  // Query sets with item counts using aggregation
+  const { data, error } = await supabase
+    .from("sets")
+    .select(
+      `
+      id,
+      name,
+      user_id,
+      set_items (
+        id
+      )
+    `
+    )
+    .eq("user_id", userId)
+    .order("name");
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    return [];
+  }
+
+  // Transform data to SetDTO format with item_count
+  return data.map((set) => ({
+    id: set.id,
+    name: set.name,
+    user_id: set.user_id,
+    item_count: Array.isArray(set.set_items) ? set.set_items.length : 0,
+  }));
+}

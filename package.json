@@ -15,10 +15,12 @@
     "@astrojs/node": "^9.4.3",
     "@astrojs/sitemap": "^3.5.1",
     "@astrojs/svelte": "^7.2.5",
+    "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.90.1",
     "astro": "^5.13.7",
     "svelte": "^5.46.4",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@eslint/compat": "1.2.7",

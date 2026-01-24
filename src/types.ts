@@ -223,4 +223,5 @@ export type ErrorCode =
   | "SET_NOT_FOUND"
   | "ITEM_NOT_FOUND"
   | "UNAUTHORIZED"
-  | "FORBIDDEN";
+  | "FORBIDDEN"
+  | "INTERNAL_ERROR";
