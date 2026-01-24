@@ -25,6 +25,49 @@ export async function createSet(supabase: SupabaseClient, userId: string, name: 
 }
 
 /**
+ * Updates an existing set's name
+ *
+ * @param supabase - Supabase client instance
+ * @param userId - User ID from authenticated session
+ * @param setId - UUID of the set to update
+ * @param name - New set name (will be trimmed before update)
+ * @returns The updated set entity
+ * @throws Error if set not found, not owned by user, duplicate name, or database error
+ */
+export async function updateSet(
+  supabase: SupabaseClient,
+  userId: string,
+  setId: string,
+  name: string
+): Promise<SetEntity> {
+  const { data, error } = await supabase
+    .from("sets")
+    .update({ name: name.trim() })
+    .eq("id", setId)
+    .eq("user_id", userId)
+    .select()
+    .single();
+
+  if (error) {
+    // PostgREST returns PGRST116 when no rows match the update condition
+    if (error.code === "PGRST116") {
+      const notFoundError = new Error("SET_NOT_FOUND") as Error & { code: "SET_NOT_FOUND" };
+      notFoundError.code = "SET_NOT_FOUND";
+      throw notFoundError;
+    }
+    throw error;
+  }
+
+  if (!data) {
+    const notFoundError = new Error("SET_NOT_FOUND") as Error & { code: "SET_NOT_FOUND" };
+    notFoundError.code = "SET_NOT_FOUND";
+    throw notFoundError;
+  }
+
+  return data;
+}
+
+/**
  * Retrieves all sets for a user with item counts
  *
  * @param supabase - Supabase client instance

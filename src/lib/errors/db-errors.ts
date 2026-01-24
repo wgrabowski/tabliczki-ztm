@@ -14,12 +14,32 @@ export interface MappedError {
  *
  * Handles specific PostgreSQL error codes and constraint violations:
  * - 23505: Unique constraint violation (duplicate set name)
+ * - PGRST116: PostgREST error for no rows returned (set not found)
+ * - SET_NOT_FOUND: Custom error from service layer
  * - Custom trigger messages for business logic errors (max sets)
  *
  * @param error - Error object from database operation
  * @returns Mapped error with appropriate code, message, and HTTP status
  */
 export function mapDatabaseError(error: { code: string; constraint: string; message: string }): MappedError {
+  // Set not found - explicit error from service layer
+  if (error.code === "SET_NOT_FOUND" || error.message === "SET_NOT_FOUND") {
+    return {
+      code: "SET_NOT_FOUND",
+      message: "Set not found or access denied",
+      status: 404,
+    };
+  }
+
+  // PostgREST "no rows" error
+  if (error.code === "PGRST116") {
+    return {
+      code: "SET_NOT_FOUND",
+      message: "Set not found or access denied",
+      status: 404,
+    };
+  }
+
   // Duplicate name - unique constraint violation on user_id + btrim(name)
   if (
     error.code === "23505" &&

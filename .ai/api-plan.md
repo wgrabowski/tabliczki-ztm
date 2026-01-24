@@ -37,16 +37,18 @@
     - `401 Unauthorized`
     - `500` on unexpected failure.
 
-- **PATCH /api/sets/{setId}**
+- **PATCH /api/sets/{setId}** ✅ IMPLEMENTED
   - Description: rename a set the owner controls.
-  - Body: `{ name: string }`
+  - URL Params: `setId` (UUID)
+  - Body: `{ name: string }` (1-10 characters after trimming)
   - Response: `{ sets: [...], updated_set: { id, name } }`
   - Success: `200 OK`
   - Errors:
-    - `404 Not Found` if set does not belong to the user.
+    - `400 Bad Request` for invalid input (bad UUID, invalid name length).
+    - `401 Unauthorized` when authentication fails.
+    - `404 Not Found` if set does not exist or doesn't belong to the user.
     - `409 Conflict` when trimmed name duplicates another set.
-    - `400 Bad Request` for invalid name length.
-    - `401/403`
+    - `500 Internal Server Error` for unexpected errors.
 
 - **DELETE /api/sets/{setId}**
   - Description: delete a set and its cascade items.
