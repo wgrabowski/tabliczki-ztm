@@ -36,9 +36,10 @@ The core idea is to make it fast to monitor **several boards at once**, plus pro
   - **TypeScript 5**
   - **CSS**: modern, native CSS (Custom Properties, Grid, Flexbox) — no heavy UI framework
   - **UI approach**: minimally styled native HTML elements (`<dialog>`, `<form>`, `<button>`, `<input>`)
-- **Backend (planned in MVP scope)**
-  - **Supabase**: PostgreSQL + Auth + RLS
-  - **Supabase Edge Functions (Deno)**: proxy/aggregation/caching for ZTM API
+- **Backend**
+  - **Supabase**: PostgreSQL + Auth + RLS (used for user-owned sets and set items)
+  - **Server API (Astro)**: REST endpoints for auth/sets/items and ZTM proxy endpoints (with caching/timeouts)
+  - **Supabase Edge Functions (optional / future)**: alternative place for ZTM proxy/aggregation/caching
 - **Infrastructure (planned)**
   - **Vercel** (recommended)
   - **CI/CD**: GitHub Actions
@@ -90,19 +91,14 @@ From `package.json`:
 
 ### Quick Start
 
-The project includes a ready-to-use Postman collection for testing all API endpoints locally:
+You can test the REST API endpoints locally using Postman (or any HTTP client).
 
-1. **Import the collection** into Postman:
-   - File: `postman_collection.json`
-   - Contains all REST API endpoints (Sets and Set Items)
-
-2. **Import the environment** (optional but recommended):
+1. **Import the environment** (optional):
    - File: `postman_environment_local.json`
-   - Pre-configured for local development
 
-3. **Configure authentication**:
-   - Set your Supabase JWT token in the `auth_token` variable
-   - See `POSTMAN_SETUP.md` for detailed instructions
+2. **Authenticate**:
+   - Protected endpoints use **Supabase session cookies**.
+   - In Postman: call `POST /api/auth/login` first and keep cookies enabled for subsequent requests.
 
 ### What's Included
 
@@ -110,21 +106,17 @@ The project includes a ready-to-use Postman collection for testing all API endpo
 
 - **Sets Management**: GET, POST, PATCH, DELETE operations on sets
 - **Set Items Management**: GET, POST, DELETE operations on items within sets
-- **Test Scenarios**: Full flow examples and error case testing
+- **ZTM (public)**: stops and departures endpoints for testing upstream integration
 
 #### Features
 
-- ✅ Automatic variable management (IDs are auto-saved after creation)
-- ✅ Pre-configured authentication headers
-- ✅ Automated tests with assertions
-- ✅ Example requests with realistic data
-- ✅ Error case validation tests
+- ✅ Works with the local dev server (`npm run dev`)
+- ✅ Supports testing both protected and public endpoints
 
 ### Documentation
 
 For detailed setup instructions, authentication methods, and troubleshooting, see:
 
-- **[POSTMAN_SETUP.md](./POSTMAN_SETUP.md)** - Complete guide with screenshots
 - **[.ai/api-plan.md](./.ai/api-plan.md)** - Full API specification
 
 ### Running Tests
@@ -132,12 +124,9 @@ For detailed setup instructions, authentication methods, and troubleshooting, se
 ```bash
 # 1. Start the dev server
 npm run dev
-
-# 2. In Postman: Right-click collection → "Run collection"
-# 3. Select all requests and click "Run"
 ```
 
-All tests include automatic validation of:
+Recommended checks for API responses:
 
 - HTTP status codes
 - Response structure
@@ -149,12 +138,13 @@ All tests include automatic validation of:
 ### MVP functional scope (from PRD)
 
 - **Authentication**
-  - Email/password sign-up and sign-in (no email verification in MVP)
+  - Email/password sign-up and sign-in
+  - No email verification required by default in MVP (but UI supports environments that require confirmation)
   - Session persistence (“remember me” behavior)
 - **Stop-board sets**
   - Up to **6 sets** per user
   - Set name up to **10 characters**
-  - Rename in a dedicated management view (save on Enter / blur)
+  - Rename inline on the sets list (save on Enter / blur)
   - Delete sets (with their content)
 - **Dashboard**
   - Grid of widgets: up to **6 stop boards per set**
@@ -165,8 +155,7 @@ All tests include automatic validation of:
 - **Refreshing & resiliency**
   - Auto refresh every **60 seconds**
   - Shared refresh progress bar at the top of the screen (under header)
-  - Silent retry after **5 seconds** on network error
-  - Error icon on widget after a persistent failure; future refreshes keep trying
+  - On refresh errors: warnings and retry on the next cycle; after repeated failures the cycle can be stopped with a “Try again” CTA
 - **TV mode (public, no login)** ✅ **IMPLEMENTED**
   - Accessible via `/tv/{stopId}` route
   - High readability: large stop name, clock (HH:mm), list of departures
@@ -189,7 +178,7 @@ All tests include automatic validation of:
 
 ## 8. Project status
 
-**MVP: in progress.** Requirements are defined in `.ai/prd.md`; implementation may be partial and will evolve as features are built and integrated (including the planned Supabase backend).
+**MVP: in progress.** Requirements are defined in `.ai/prd.md`; implementation may be partial and will evolve as features are built and integrated.
 
 ## 9. License
 
