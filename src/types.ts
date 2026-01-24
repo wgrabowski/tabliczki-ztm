@@ -225,3 +225,35 @@ export type ErrorCode =
   | "UNAUTHORIZED"
   | "FORBIDDEN"
   | "INTERNAL_ERROR";
+
+// ============================================================================
+// Dashboard View Types
+// ============================================================================
+
+/**
+ * Toast notification type
+ */
+export interface Toast {
+  /** Unique identifier (timestamp + random) */
+  id: string;
+  /** Notification type (affects styling) */
+  type: "success" | "error" | "info" | "warning";
+  /** Message text */
+  message: string;
+  /** Whether to auto-dismiss (true for success/info) */
+  autoDismiss: boolean;
+}
+
+/**
+ * Confirm dialog state
+ */
+export interface ConfirmDialogState {
+  /** Whether dialog is open */
+  isOpen: boolean;
+  /** Dialog title */
+  title: string;
+  /** Confirmation message */
+  message: string;
+  /** Callback executed on confirmation */
+  onConfirm: () => void;
+}

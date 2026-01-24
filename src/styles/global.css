@@ -1,0 +1,137 @@
+/* ============================================================================
+   Global Styles for Tabliczki ZTM
+   ============================================================================ */
+
+/* Font Imports */
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200");
+
+/* Departure Mono Font */
+@font-face {
+  font-family: "Departure Mono";
+  src:
+    url("/fonts/DepartureMono-Regular.woff2") format("woff2"),
+    url("/fonts/DepartureMono-Regular.woff") format("woff"),
+    url("/fonts/DepartureMono-Regular.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* CSS Variables */
+:root {
+  color-scheme: dark light;
+  /* Color Palette - Monochromatic */
+  --theme--bg-color: light-dark(#eee, black);
+  --theme--accent-color: light-dark(#444444, goldenrod);
+  --theme--accent-color-dim: light-dark(#333333, darkgoldenrod);
+
+  /* Status Colors */
+  --theme--positive: lightgreen;
+  --theme--negative: red;
+
+  /* Spacing */
+  --theme--spacing: 0.25em;
+}
+
+/* Reset & Base */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Departure Mono", monospace;
+  background-color: var(--theme--bg-color);
+  color: var(--theme--accent-color);
+  line-height: 1.5;
+}
+
+/* Apply font to form controls */
+button,
+input,
+select,
+textarea {
+  font-family: "Departure Mono", monospace;
+}
+
+/* Global Theme Classes */
+
+/* Icon Font - Material Symbols */
+.theme-icon {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "liga";
+}
+
+/* Filled Variant */
+.theme-filled {
+  background-color: var(--theme--accent-color-dim);
+  color: var(--theme--bg-color);
+  border: 1px solid var(--theme--accent-color-dim);
+}
+
+/* Outlined Variant */
+.theme-outlined {
+  background-color: var(--theme--bg-color);
+  color: var(--theme--accent-color);
+  border: 1px solid var(--theme--accent-color-dim);
+}
+
+/* Focusable Elements */
+.theme-focusable:focus-visible {
+  outline: 2px solid var(--theme--accent-color-dim);
+  outline-offset: 0.2em;
+}
+
+/* No Border Radius - Squared Corners */
+.theme-noradius {
+  border-radius: 0;
+}
+
+/* Clickable Elements - Hover and Active States */
+.theme-clickable {
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.theme-clickable:hover {
+  filter: brightness(1.5);
+}
+
+.theme-clickable:active {
+  filter: brightness(0.8);
+}
+
+/* Accessibility */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--theme--accent-color-dim);
+  outline-offset: 0.2em;
+}
+
+/* Input Validation States */
+input:user-invalid {
+  border-color: var(--theme--negative);
+}
+
+input:user-valid {
+  border-color: var(--theme--positive);
+}
