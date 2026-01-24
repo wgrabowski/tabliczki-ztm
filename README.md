@@ -15,9 +15,10 @@
 - [4. Getting started locally](#4-getting-started-locally)
 - [5. Available scripts](#5-available-scripts)
 - [6. API Testing with Postman](#6-api-testing-with-postman)
-- [7. Project scope](#7-project-scope)
-- [8. Project status](#8-project-status)
-- [9. License](#9-license)
+- [7. Test plan](#7-test-plan)
+- [8. Project scope](#8-project-scope)
+- [9. Project status](#9-project-status)
+- [10. License](#10-license)
 
 ## 2. Project description
 
@@ -27,6 +28,7 @@ The core idea is to make it fast to monitor **several boards at once**, plus pro
 
 - **Product requirements (PRD)**: see `.ai/prd.md`
 - **Tech stack notes**: see `.ai/tech-stack.md`
+- **QA / Test plan**: see `.ai/test-plan.md`
 
 ## 3. Tech stack
 
@@ -91,12 +93,9 @@ From `package.json`:
 
 ### Quick Start
 
-You can test the REST API endpoints locally using Postman (or any HTTP client).
+You can test the REST API endpoints locally using Postman (or any HTTP client). This repo does not include a Postman collection/environment yet, so configure the base URL manually (e.g. `http://localhost:4321`).
 
-1. **Import the environment** (optional):
-   - File: `postman_environment_local.json`
-
-2. **Authenticate**:
+1. **Authenticate**:
    - Protected endpoints use **Supabase session cookies**.
    - In Postman: call `POST /api/auth/login` first and keep cookies enabled for subsequent requests.
 
@@ -133,7 +132,13 @@ Recommended checks for API responses:
 - Error codes and messages
 - Business logic constraints (max 6 sets, max 6 items, etc.)
 
-## 7. Project scope
+## 7. Test plan
+
+The project’s QA assumptions, scenarios, and acceptance criteria are described in:
+
+- **[.ai/test-plan.md](./.ai/test-plan.md)**
+
+## 8. Project scope
 
 ### MVP functional scope (from PRD)
 
@@ -155,7 +160,8 @@ Recommended checks for API responses:
 - **Refreshing & resiliency**
   - Auto refresh every **60 seconds**
   - Shared refresh progress bar at the top of the screen (under header)
-  - On refresh errors: warnings and retry on the next cycle; after repeated failures the cycle can be stopped with a “Try again” CTA
+  - On refresh errors: warnings and retry on the next cycle; after **3 consecutive failures** the refresh cycle is stopped with a “Try again” CTA
+  - Refresh is paused while dialogs are open and when the browser tab is hidden; on return it refreshes immediately and resets the error counter
 - **TV mode (public, no login)** ✅ **IMPLEMENTED**
   - Accessible via `/tv/{stopId}` route
   - High readability: large stop name, clock (HH:mm), list of departures
@@ -164,7 +170,7 @@ Recommended checks for API responses:
   - Optimized for large screens (responsive typography up to 3rem)
 - **UI**
   - Header: current time, set switcher (dashboard), links to set/account management
-  - Theme switcher: Light / Dark / System (default), not persisted
+  - Theme switcher: Light / Dark / System (default), persisted locally (fallback to `prefers-color-scheme` when unset)
   - Responsive layout (RWD)
 
 ### Out of scope (explicit PRD boundaries)
@@ -176,11 +182,11 @@ Recommended checks for API responses:
 - Manual reordering of boards in the grid (only add/remove)
 - Advanced filtering of lines within a single board
 
-## 8. Project status
+## 9. Project status
 
 **MVP: in progress.** Requirements are defined in `.ai/prd.md`; implementation may be partial and will evolve as features are built and integrated.
 
-## 9. License
+## 10. License
 
 **MIT** (as currently stated by the repository).
 

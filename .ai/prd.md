@@ -1,9 +1,9 @@
-# Dokument wymagań produktu (PRD) - Tabliczki ZTM(MVP)
+# Dokument wymagań produktu (PRD) - Tabliczki ZTM (MVP)
 
 ## 1. Przegląd produktu
 
-Projekt Tabliczki ZTM(MVP) to aplikacja webowa służąca do śledzenia na żywo informacji z tablic przystankowych komunikacji miejskiej w Gdańsku (ZTM Gdańsk). Aplikacja agreguje dane z publicznego API projektu Otwarty Gdańsk, prezentując je w formie personalizowanych dashboardów. Użytkownicy mogą tworzyć własne zestawy tablic (np. Do pracy, Powrót do domu) i monitorować czasy odjazdów w czasie rzeczywistym.
-Kluczową funckką jest śledzenie kilku tablic przystankowych jednocześnie.
+Projekt Tabliczki ZTM (MVP) to aplikacja webowa służąca do śledzenia na żywo informacji z tablic przystankowych komunikacji miejskiej w Gdańsku (ZTM Gdańsk). Aplikacja agreguje dane z publicznego API projektu Otwarty Gdańsk, prezentując je w formie personalizowanych dashboardów. Użytkownicy mogą tworzyć własne zestawy tablic (np. Do pracy, Powrót do domu) i monitorować czasy odjazdów w czasie rzeczywistym.
+Kluczową funkcją jest śledzenie kilku tablic przystankowych jednocześnie.
 Dodatkową funkcją jest tryb wysokiej czytelności (TV), przeznaczony do wyświetlania na monitorach stacjonarnych i telewizorach, co pozwala na bezobsługowe monitorowanie konkretnych przystanków.
 
 ## 2. Problem użytkownika
@@ -17,7 +17,12 @@ a. System uwierzytelniania:
 - Rejestracja i logowanie wyłącznie za pomocą e-mail i hasła.
 - W MVP aplikacja może działać w trybie bez potwierdzania e-mail, ale jeśli środowisko wymaga potwierdzenia adresu e-mail, interfejs powinien jasno zakomunikować konieczność potwierdzenia i pozwolić użytkownikowi wrócić do logowania.
 - Automatyczne zapamiętywanie sesji użytkownika (pozostanie zalogowanym między wizytami).
+- Ochrona tras i API po stronie serwera:
+  - niezalogowany dostęp do `/dashboard/*` i `/account` powoduje przekierowanie do `/auth/login?returnUrl=...`,
+  - niezalogowany dostęp do chronionych endpointów (np. `/api/sets*`) zwraca `401` w JSON.
+- `returnUrl` jest walidowany i może wskazywać wyłącznie na ścieżkę względną aplikacji (ochrona przed open redirect).
 - Widok konta umożliwia wylogowanie oraz trwałe usunięcie konta wraz z danymi użytkownika (zestawy i ich zawartość).
+  - Usuwanie konta wymaga poprawnej konfiguracji klucza serwisowego po stronie serwera (brak klucza → błąd konfiguracji).
 
 b. Zarządzanie zestawami tablic:
 
@@ -41,9 +46,13 @@ c. Dashboard i tablice:
 d. Odświeżanie i dane:
 
 - Automatyczne odświeżanie danych co 1 minutę.
-- Wspólny wizualny pasek postępu odświeżania na górze ekranu, pod nagłówkiem aplikacji
-- W przypadku problemów z pobraniem danych: użytkownik otrzymuje komunikat ostrzegawczy, a aplikacja próbuje ponownie w kolejnych cyklach odświeżania.
-- W przypadku powtarzających się błędów (np. kilka kolejnych nieudanych prób): odświeżanie zostaje wstrzymane, a interfejs wyświetla wyraźny komunikat oraz akcję „Spróbuj ponownie” (odświeżenie strony).
+- Wspólny wizualny pasek postępu odświeżania na górze ekranu, pod nagłówkiem aplikacji.
+- W przypadku problemów z pobraniem danych:
+  - użytkownik otrzymuje komunikat ostrzegawczy, a aplikacja próbuje ponownie w kolejnych cyklach,
+  - po 3 kolejnych nieudanych cyklach odświeżanie zostaje wstrzymane, a interfejs pokazuje wyraźny stan awaryjny i akcję „Spróbuj ponownie” (odświeżenie strony).
+- Odświeżanie jest pauzowane:
+  - gdy otwarty jest dialog (np. dodawanie przystanku lub potwierdzenie usunięcia),
+  - gdy karta przeglądarki jest ukryta (Page Visibility); po powrocie następuje natychmiastowe odświeżenie i reset licznika błędów.
 - Pojedyncza karta może pokazywać błąd per-przystanek, jeśli tylko część danych nie jest dostępna.
 
 e. Tryb pełnoekranowy (TV):
@@ -52,6 +61,10 @@ e. Tryb pełnoekranowy (TV):
 - Widok nie wymaga logowania do wyświetlania danych.
 - Wysoka czytelność: duża nazwa przystanku, zegar HH:mm i lista odjazdów.
 - Widok TV jest pasywny, ale dopuszcza minimalne interakcje wspierające długie działanie: przełącznik motywu oraz ręczne odświeżenie w razie błędu.
+- Odporność na błędy w trybie TV:
+  - automatyczne odświeżanie co 60s,
+  - w stanie błędu automatyczne retry co 5s, maksymalnie 3 próby,
+  - po wyczerpaniu retry – wyświetlany jest ekran błędu z akcją ręcznego odświeżenia (resetuje licznik prób).
 
 f. Interfejs i personalizacja:
 
@@ -59,11 +72,13 @@ f. Interfejs i personalizacja:
   - edycji/zarządzania zestawami tablic
   - edycji konta użytkownika
 - Przełącznik motywu: Jasny, Ciemny, Systemowy (domyślny).
+- Persystencja motywu: wybór jest zapisywany lokalnie (np. `localStorage`), a domyślna wartość wynika z `prefers-color-scheme`, jeśli brak wcześniejszego wyboru.
 - Responsywność (RWD) dostosowująca grid do wielkości ekranu.
 
 ## 4. Granice produktu
 
 - Aplikacja nie wspiera trybu offline (wymagane stałe połączenie z API).
+- Aplikacja nie jest PWA w MVP (brak service worker/offline cache).
 - Brak funkcji społecznościowych i udostępniania zestawów między użytkownikami.
 - Brak powiadomień push o utrudnieniach.
 - Brak mapy interaktywnej w wyszukiwarce przystanków.
@@ -158,7 +173,7 @@ Kryteria akceptacji:
 
 - Przełącznik z opcjami Jasny/Ciemny/Systemowy.
 - Motyw zmienia się natychmiast po wybraniu opcji.
-- Wybór nie jest zapamiętywany
+- Wybór jest zapamiętywany lokalnie i zachowany po odświeżeniu strony.
 
 ID: US-011
 Tytuł: Usuwanie konta
@@ -175,8 +190,20 @@ Kryteria akceptacji:
 
 - Przy problemie z odświeżeniem użytkownik dostaje czytelny komunikat (np. ostrzeżenie), a aplikacja podejmuje kolejne próby w następnych cyklach.
 - Przy powtarzających się błędach aplikacja wyświetla wyraźny stan awaryjny i umożliwia ręczne wznowienie (np. przez odświeżenie strony).
+  - Odświeżanie jest wstrzymywane po 3 kolejnych błędach odświeżenia.
+  - Odświeżanie jest pauzowane podczas otwartych dialogów oraz gdy karta przeglądarki jest ukryta.
 
-## 6. Metryki sukcesu
+## 6. Wymagania niefunkcjonalne i bezpieczeństwo (MVP)
+
+- **Izolacja danych użytkowników (RLS)**: dane zestawów i elementów są dostępne wyłącznie dla właściciela.
+- **Sesja i autoryzacja**: chronione endpointy nie ufają danym przekazywanym z klienta (np. `user_id`) — źródłem prawdy jest sesja/cookies.
+- **Ochrona przed open redirect**: `returnUrl` dopuszcza tylko bezpieczne ścieżki względne w obrębie aplikacji.
+- **Odporność na upstream**: integracja z API ZTM powinna obsługiwać time-outy oraz błędy upstream/niepoprawne odpowiedzi w czytelny i spójny sposób (kody błędów i komunikaty).
+- **Cache-Control**:
+  - endpointy publiczne ZTM mogą stosować cache (krótki TTL),
+  - endpointy chronione (z danymi użytkownika) nie powinny być cachowane (`no-store`).
+
+## 7. Metryki sukcesu
 
 - Skuteczne logowanie użytkownika przy pierwszej próbie.
 - Czas konfiguracji pierwszego zestawu (dodanie 1 zestawu i 1 przystanku) poniżej 30 sekund.
