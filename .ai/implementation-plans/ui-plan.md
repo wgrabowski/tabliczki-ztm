@@ -19,8 +19,10 @@ Założenia kluczowe dla UX i spójności:
 - **Dashboard łączy monitoring i zarządzanie** (CRUD zestawów w jednym miejscu).
 - **Minimalizm technologiczny**: preferowane są komponenty oparte o ostylowane, natywne elementy HTML (`<dialog>`, `<form>`, `<progress>`) oraz prosty CSS Grid.
 - **Minimalistyczny interfejs**: skromna paleta kolorów, czcionka Departure Mono.
-- **Brak store**: dane pobierane w kontenerach per route i przekazywane w dół przez **jawny props drilling**.
-- **Stany globalne** (toasty, globalny preloader, overlay offline) są spójne między widokami.
+- **Hybrydowe zarządzanie stanem**:
+  - **Svelte stores** dla globalnego stanu UI (toasty, globalny preloader) - współdzielone między wszystkimi widokami
+  - **Props drilling** dla danych specyficznych dla widoku (lista zestawów, dane przystanków)
+- **Stany globalne** (toasty, globalny preloader, overlay offline) są spójne między widokami i zarządzane przez Svelte stores.
 - **Bezpieczeństwo**: guardy po stronie serwera (Astro) + jednoznaczna obsługa `401` (redirect do `/login`).
 
 ## 2. Lista widoków
@@ -38,8 +40,8 @@ Poniżej: widoki wymagane przez PRD + doprecyzowania z sesji planowania, wraz z 
   - Informacja o braku sesji / wygaśniętej sesji (jeśli redirect nastąpił z powodu `401`).
 - **Kluczowe komponenty widoku**:
   - `AuthForm` (email, password, submit; przełącznik trybu: logowanie/rejestracja).
-  - `ToastStack` (globalny, ale widoczny też na loginie).
   - (Opcjonalnie) `AuthBranding` (nagłówek strony/krótki opis).
+  - **Uwaga**: `ToastStack` jest częścią `AppLayout` (jeśli login używa layoutu) lub może być renderowany bezpośrednio w widoku logowania, korzystając z `toastsStore`.
 - **UX, dostępność i względy bezpieczeństwa**:
   - **Dostępność**: etykiety `<label>`, poprawne `autocomplete`, czytelne błędy (toasty bez auto-dismiss dla błędów).
   - **Bezpieczeństwo**: brak wrażliwych danych w URL; po sukcesie redirect do `/dashboard`.
@@ -63,13 +65,13 @@ Poniżej: widoki wymagane przez PRD + doprecyzowania z sesji planowania, wraz z 
     - Akcja usunięcia (z potwierdzeniem).
     - Akcja wejścia do `/dashboard/{setId}`.
   - `CreateSet` (duży przycisk otwierający `<dialog>` + `<form>`), widoczny tylko jeśli liczba zestawów < 6.
-  - `GlobalPreloader` (aktywny przy POST/DELETE).
-  - `ToastStack`.
+  - **Uwaga**: `GlobalPreloader` i `ToastStack` są częścią `AppLayout`, nie tego widoku. Widok używa `setGlobalLoading()` i `toastsStore.addToast()` do zarządzania nimi.
 - **UX, dostępność i względy bezpieczeństwa**:
   - **Walidacja nazwy**: natywna walidacja HTML (`maxlength=10`, `pattern` blokujący puste/whitespace-only), blokowanie submit przez przeglądarkę z komunikatem przy polu.
   - **Loading**:
-    - PATCH nazwy blokuje tylko daną kartę.
-    - POST/DELETE pokazuje globalny preloader (na całą stronę).
+    - PATCH nazwy blokuje tylko daną kartę (lokalny loader w `SetCard`).
+    - POST/DELETE pokazuje globalny preloader (wywołanie `setGlobalLoading(true)` z `globalLoadingStore`).
+    - Komunikaty sukcesu/błędu wyświetlane przez toasty (wywołanie `toastsStore.addToast(type, message)`).
   - **Bezpieczeństwo**: widok chroniony (guard SSR); `401` z API → redirect do `/login`.
   - **Przypadki brzegowe**: `MAX_SETS_PER_USER_EXCEEDED`, konflikty nazw (`409`) → toast z komunikatem z API.
 - **Mapowanie na API**:
@@ -104,8 +106,7 @@ Poniżej: widoki wymagane przez PRD + doprecyzowania z sesji planowania, wraz z 
     - Wyszukiwarka z autouzupełnianiem (w wersji minimalnej: `input type="search"` połączone z `datalist`).
     - Wynik minimalnie: `stopShortName + stopCode`.
   - `ConfirmDialog` dla usuwania karty (systemowy lub `<dialog>`).
-  - `GlobalPreloader` (POST/DELETE elementów).
-  - `ToastStack`.
+  - **Uwaga**: `GlobalPreloader` i `ToastStack` są częścią `AppLayout`, nie tego widoku. Widok używa `setGlobalLoading()` i `toastsStore.addToast()` do zarządzania nimi.
 - **UX, dostępność i względy bezpieczeństwa**:
   - **Guard SSR**: widok chroniony; dodatkowo sprawdzenie istnienia seta; jeśli brak → przekierowanie na wspólną stronę błędu.
   - **Dodawanie**: przy 6 kartach przycisk dodawania ukryty (na podstawie danych z API o liczbie kart).
@@ -114,7 +115,8 @@ Poniżej: widoki wymagane przez PRD + doprecyzowania z sesji planowania, wraz z 
     - 2 błędy → mocniejszy warning.
     - 3 błędy → duży błąd na kaflach i zatrzymanie cyklu; zamiast paska pojawia się „Spróbuj ponownie” (twardy `reload`).
   - **Loading**:
-    - Globalny preloader dla POST/DELETE nie blokuje cyklicznego odświeżania danych.
+    - Globalny preloader dla POST/DELETE (wywołanie `setGlobalLoading(true)` z `globalLoadingStore`) nie blokuje cyklicznego odświeżania danych.
+    - Komunikaty sukcesu/błędu wyświetlane przez toasty (wywołanie `toastsStore.addToast(type, message)`).
   - **Dostępność**: przyciski-ikony mają `title`; dialogi z poprawnym focusem i zamykaniem; scroll w karcie dostępny klawiaturą.
 - **Mapowanie na API**:
   - Konfiguracja zestawu:
@@ -139,11 +141,11 @@ Poniżej: widoki wymagane przez PRD + doprecyzowania z sesji planowania, wraz z 
   - Nagłówek (slot lewy): `BackToDashboardButton`.
   - `AccountSummary`.
   - `DeleteAccountSection` z wyraźnym ostrzeżeniem i potwierdzeniem.
-  - `GlobalPreloader` podczas operacji konta (np. delete).
-  - `ToastStack`.
+  - **Uwaga**: `GlobalPreloader` i `ToastStack` są częścią `AppLayout`, nie tego widoku. Widok używa `setGlobalLoading()` i `toastsStore.addToast()` do zarządzania nimi.
 - **UX, dostępność i względy bezpieczeństwa**:
   - **Bezpieczeństwo**: widok chroniony (guard SSR); `401` → `/login`.
   - **Dostępność**: ostrzeżenia i potwierdzenia czytelne, z poprawnym fokusem.
+  - **Loading**: operacje konta używają globalnego preloadera (`setGlobalLoading(true)`) i toastów (`toastsStore.addToast()`).
   - **Przypadki brzegowe**: błąd usunięcia konta → toast; po usunięciu konta powrót do `/login`.
 - **Mapowanie na API**:
   - Autoryzacja realizowana przez Supabase Auth (operacje sesji).
@@ -283,11 +285,11 @@ Poniżej: widoki wymagane przez PRD + doprecyzowania z sesji planowania, wraz z 
 
 Komponenty przekrojowe (używane w wielu widokach) oraz ich rola w architekturze:
 
-- **AppLayout/HeaderShell**: wspólny layout z nagłówkiem, prawą stroną (zegar, `ThemeToggle`) i lewym slotem kontekstowym.
+- **AppLayout/HeaderShell**: wspólny layout z nagłówkiem, prawą stroną (zegar, `ThemeToggle`) i lewym slotem kontekstowym. Zawiera również globalne komponenty UI: `GlobalPreloader` i `ToastStack`, które są widoczne we wszystkich widokach aplikacji.
 - **Clock**: aktualny czas (również w TV), spójne źródło czasu dla UI.
 - **ThemeToggle**: system/jasny/ciemny; wybór nie jest zapamiętywany (zgodnie z PRD). Motywy jasny/ciemny wspierane przez CSS `color-scheme` oraz dobór wartości z użyciem `light-dark()`.
-- **ToastStack**: jednolity kanał komunikatów (błędy jako persistent; sukces/info auto-dismiss ~1s; wiele toastów naraz, nowe niżej; treści z API).
-- **GlobalPreloader**: pełnoekranowy preloader dla operacji POST/DELETE (zestawy i elementy), bez zatrzymywania cyklicznego odświeżania danych.
+- **ToastStack**: jednolity kanał komunikatów (błędy jako persistent; sukces/info auto-dismiss ~3s; wiele toastów naraz, nowe niżej; treści z API). Zarządzany przez `toastsStore` (Svelte store), umieszczony w `AppLayout` na poziomie globalnym.
+- **GlobalPreloader**: pełnoekranowy preloader dla operacji POST/DELETE (zestawy i elementy), bez zatrzymywania cyklicznego odświeżania danych. Zarządzany przez `globalLoadingStore` (Svelte store), umieszczony w `AppLayout` na poziomie globalnym.
 - **ConfirmDialog**: potwierdzenia usuwania (zestawów i kart), zgodne z WCAG (fokus, zamykanie).
 - **DashboardGrid**: wspólny komponent siatki (CSS Grid) przyjmujący dzieci; wykorzystywany zarówno dla kart zestawów (`SetCard`), jak i kart przystanków (`StopCard`).
 - **SetCard**: karta zestawu na `/dashboard` (w tym lokalny loader dla PATCH).
@@ -298,6 +300,134 @@ Komponenty przekrojowe (używane w wielu widokach) oraz ich rola w architekturze
 - **ErrorPage (app)**: wspólna strona błędu dla przypadków innych niż `401`, z CTA do dashboardu.
 - **TvScreen/TvErrorScreen**: TV view i jego pojedynczy ekran błędu (bez routingu).
 - **OfflineOverlay**: pełnoekranowa blokada UI w offline (mobile/PWA), automatycznie włącza/wyłącza się.
+
+### 5.1 Svelte Stores - globalny stan UI
+
+Aplikacja wykorzystuje **Svelte stores** do zarządzania globalnym stanem interfejsu użytkownika, który jest współdzielony między wszystkimi widokami. Stores są zdefiniowane w dedykowanych plikach w katalogu `src/lib/stores/`.
+
+#### globalLoadingStore
+
+**Plik:** `src/lib/stores/global-loading.store.ts`
+
+**Cel:** Zarządzanie stanem pełnoekranowego preloadera wyświetlanego podczas operacji POST (tworzenie) i DELETE (usuwanie) dla zestawów i elementów zestawów.
+
+**Implementacja:**
+
+```typescript
+import { writable } from "svelte/store";
+
+export const globalLoadingStore = writable<boolean>(false);
+
+export function setGlobalLoading(isLoading: boolean) {
+  globalLoadingStore.set(isLoading);
+}
+```
+
+**Użycie:**
+
+- Widoki wywołują `setGlobalLoading(true)` przed operacją POST/DELETE
+- `GlobalPreloader` w `AppLayout` subskrybuje `$globalLoadingStore` i automatycznie pokazuje/ukrywa overlay
+- Po zakończeniu operacji (sukces lub błąd) widok wywołuje `setGlobalLoading(false)`
+
+#### toastsStore
+
+**Plik:** `src/lib/stores/toasts.store.ts`
+
+**Cel:** Zarządzanie kolejką powiadomień typu toast wyświetlanych użytkownikowi (sukces, błąd, info, ostrzeżenie).
+
+**Implementacja:**
+
+```typescript
+import { writable } from "svelte/store";
+import type { Toast } from "../../types";
+
+function createToastsStore() {
+  const { subscribe, update } = writable<Toast[]>([]);
+
+  return {
+    subscribe,
+    addToast: (type: Toast["type"], message: string) => {
+      const id = `${Date.now()}-${Math.random()}`;
+      const autoDismiss = type === "success" || type === "info";
+      const toast: Toast = { id, type, message, autoDismiss };
+
+      update((toasts) => [...toasts, toast]);
+
+      // Auto-dismiss dla success/info po 3 sekundach
+      if (autoDismiss) {
+        setTimeout(() => {
+          update((toasts) => toasts.filter((t) => t.id !== id));
+        }, 3000);
+      }
+
+      return id;
+    },
+    removeToast: (id: string) => {
+      update((toasts) => toasts.filter((t) => t.id !== id));
+    },
+  };
+}
+
+export const toastsStore = createToastsStore();
+```
+
+**Użycie:**
+
+- Widoki wywołują `toastsStore.addToast('success', 'Operacja zakończona sukcesem')` po udanej operacji
+- Widoki wywołują `toastsStore.addToast('error', 'Wystąpił błąd')` przy błędach
+- `ToastStack` w `AppLayout` subskrybuje `$toastsStore` i automatycznie wyświetla wszystkie aktywne toasty
+- Toasty typu success/info znikają automatycznie po 3s
+- Toasty typu error/warning wymagają ręcznego zamknięcia przez użytkownika
+
+#### Typ Toast
+
+**Plik:** `src/types.ts`
+
+```typescript
+interface Toast {
+  id: string; // Unikalny identyfikator
+  type: "success" | "error" | "info" | "warning"; // Typ wpływający na styl
+  message: string; // Treść komunikatu
+  autoDismiss: boolean; // Czy automatycznie zamknąć
+}
+```
+
+#### Integracja w AppLayout
+
+`AppLayout` importuje stores i renderuje komponenty globalne:
+
+```svelte
+<script>
+  import { globalLoadingStore } from '$lib/stores/global-loading.store';
+  import { toastsStore } from '$lib/stores/toasts.store';
+  import GlobalPreloader from '$lib/components/GlobalPreloader.svelte';
+  import ToastStack from '$lib/components/ToastStack.svelte';
+</script>
+
+<header>
+  <slot name="header-left" />
+  <div class="header-right">
+    <Clock />
+    <ThemeToggle />
+  </div>
+</header>
+
+<main>
+  <slot />
+</main>
+
+<!-- Globalne komponenty UI (poza głównym contentem) -->
+<GlobalPreloader />
+<ToastStack />
+```
+
+#### Korzyści z tego podejścia
+
+1. **Spójność**: Stan UI jest współdzielony między wszystkimi widokami
+2. **Separacja odpowiedzialności**: Widoki zarządzają logiką biznesową, stores zarządzają stanem UI
+3. **Reaktywność**: Komponenty automatycznie reagują na zmiany w stores
+4. **Łatwość testowania**: Stores można testować niezależnie od komponentów
+5. **Skalowalność**: Łatwo dodać nowe stores dla innych globalnych stanów
 
 ---
 
@@ -321,8 +451,8 @@ Założenie: aplikacja **nie korzysta z żadnej biblioteki UI**, ale posiada prz
 - **`Select`** (bazuje na `<select>`): m.in. `SetSelect`.
 - **`Dialog`** (bazuje na `<dialog>`): wspólny układ + focus management; używany przez `AddStopDialog`, `CreateSet`, `ConfirmDialog`.
 - **`ProgressBar`** (bazuje na `<progress>`): dla `RefreshProgressBar` (determinate/indeterminate).
-- **`Toast` / `ToastStack`**: standard komunikatów (TTL wg zasad z planu).
-- **`PageOverlay`**: baza dla `GlobalPreloader` i `OfflineOverlay`.
+- **`Toast` / `ToastStack`**: standard komunikatów (TTL wg zasad z planu). Zarządzany przez `toastsStore`, renderowany w `AppLayout`.
+- **`PageOverlay`**: baza dla `GlobalPreloader` i `OfflineOverlay`. `GlobalPreloader` zarządzany przez `globalLoadingStore`, renderowany w `AppLayout`.
 - **`Card` (styl)**: wspólny wygląd kontenerów kart (`SetCard`, `StopCard`).
 
 ## 7. Mapowanie wymagań (PRD) i historyjek użytkownika do architektury UI (skrót)
