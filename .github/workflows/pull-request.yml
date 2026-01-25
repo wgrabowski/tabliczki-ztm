@@ -1,0 +1,216 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    branches:
+      - master
+    types: [opened, synchronize, reopened]
+
+jobs:
+  lint:
+    name: Code Linting
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Read Node.js version from .nvmrc
+        id: node-version
+        run: echo "version=$(cat .nvmrc)" >> $GITHUB_OUTPUT
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ steps.node-version.outputs.version }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint
+
+  unit-test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: lint
+
+    env:
+      NODE_ENV: test
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Read Node.js version from .nvmrc
+        id: node-version
+        run: echo "version=$(cat .nvmrc)" >> $GITHUB_OUTPUT
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ steps.node-version.outputs.version }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests with coverage
+        run: npm run test:unit:coverage
+
+      - name: Upload unit test coverage
+        uses: actions/upload-artifact@v6
+        with:
+          name: unit-test-coverage
+          path: coverage/
+          retention-days: 7
+
+  e2e-test:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: lint
+    environment: integration
+
+    env:
+      NODE_ENV: test
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      CI: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Read Node.js version from .nvmrc
+        id: node-version
+        run: echo "version=$(cat .nvmrc)" >> $GITHUB_OUTPUT
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ steps.node-version.outputs.version }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+
+      - name: Upload E2E test results
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Upload E2E test coverage
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: e2e-test-coverage
+          path: coverage/
+          retention-days: 7
+
+  status-comment:
+    name: PR Status Comment
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [lint, unit-test, e2e-test]
+    if: success()
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Download unit test coverage
+        uses: actions/download-artifact@v7
+        with:
+          name: unit-test-coverage
+          path: coverage-unit/
+
+      - name: Download E2E test coverage
+        uses: actions/download-artifact@v7
+        with:
+          name: e2e-test-coverage
+          path: coverage-e2e/
+
+      - name: Create PR comment
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+
+            // Helper function to safely read coverage summary
+            function getCoverageSummary(path) {
+              try {
+                const summaryPath = `${path}/coverage-summary.json`;
+                if (fs.existsSync(summaryPath)) {
+                  const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+                  const total = summary.total;
+                  return {
+                    lines: total.lines.pct,
+                    statements: total.statements.pct,
+                    functions: total.functions.pct,
+                    branches: total.branches.pct
+                  };
+                }
+              } catch (e) {
+                console.log(`Could not read coverage from ${path}:`, e.message);
+              }
+              return null;
+            }
+
+            const unitCoverage = getCoverageSummary('coverage-unit');
+            const e2eCoverage = getCoverageSummary('coverage-e2e');
+
+            let coverageSection = '';
+
+            if (unitCoverage) {
+              coverageSection += `\n### 📊 Unit Test Coverage\n\n`;
+              coverageSection += `| Metric | Coverage |\n`;
+              coverageSection += `|--------|----------|\n`;
+              coverageSection += `| Lines | ${unitCoverage.lines.toFixed(2)}% |\n`;
+              coverageSection += `| Statements | ${unitCoverage.statements.toFixed(2)}% |\n`;
+              coverageSection += `| Functions | ${unitCoverage.functions.toFixed(2)}% |\n`;
+              coverageSection += `| Branches | ${unitCoverage.branches.toFixed(2)}% |\n`;
+            }
+
+            if (e2eCoverage) {
+              coverageSection += `\n### 🎭 E2E Test Coverage\n\n`;
+              coverageSection += `| Metric | Coverage |\n`;
+              coverageSection += `|--------|----------|\n`;
+              coverageSection += `| Lines | ${e2eCoverage.lines.toFixed(2)}% |\n`;
+              coverageSection += `| Statements | ${e2eCoverage.statements.toFixed(2)}% |\n`;
+              coverageSection += `| Functions | ${e2eCoverage.functions.toFixed(2)}% |\n`;
+              coverageSection += `| Branches | ${e2eCoverage.branches.toFixed(2)}% |\n`;
+            }
+
+            const comment = `## ✅ All checks passed!
+
+            All quality checks have completed successfully:
+
+            - ✅ Code linting
+            - ✅ Unit tests
+            - ✅ E2E tests
+            ${coverageSection}
+
+            This PR is ready for review! 🚀`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
