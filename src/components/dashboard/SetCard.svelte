@@ -117,6 +117,7 @@
             variant="default"
             size="small"
             disabled={isLoading}
+            width="40px"
           />
           <IconButton
             icon="close"
@@ -126,6 +127,7 @@
             size="small"
             onClick={cancelEditing}
             disabled={isLoading}
+            width="40px"
           />
         </div>
         {#if isLoading}

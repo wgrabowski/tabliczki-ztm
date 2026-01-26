@@ -10,6 +10,7 @@
   export let type: "button" | "submit" | "reset" = "button";
   export let disabled: boolean = false;
   export let onClick: (() => void) | undefined = undefined;
+  export let width: string | undefined = undefined;
 
   function handleClick() {
     if (!disabled && onClick) {
@@ -21,6 +22,7 @@
 <button
   {type}
   {title}
+  style={width ? `width: ${width}` : undefined}
   class="icon-button theme-noradius theme-focusable theme-clickable"
   class:theme-filled={variant === "default"}
   class:theme-outlined={variant === "inverted"}

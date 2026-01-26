@@ -29,9 +29,9 @@
   --theme--accent-color: light-dark(#333333, goldenrod);
   --theme--accent-color-dim: light-dark(#333, darkgoldenrod);
 
-  /* Status Colors */
-  --theme--positive: #5ba300;
-  --theme--negative: darkred;
+  /* Status Colors - WCAG AA compliant for both light and dark modes */
+  --theme--positive: light-dark(#2e7d32, #1b5e20);
+  --theme--negative: light-dark(#c62828, #b71c1c);
 
   /* Spacing */
   --theme--spacing: 0.25em;
