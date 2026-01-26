@@ -7,7 +7,6 @@ import BackToDashboardButton from "../../components/BackToDashboardButton.svelte
 import SetSelect from "../../components/SetSelect.svelte";
 import { getUserId } from "../../lib/auth/get-user-id";
 import type { SetDashboardInitialData, SetListResponse, SetItemListResponse } from "../../types";
-import type { GetZtmSetStopsResponse } from "../../ztm-types";
 
 // Disable prerendering - this page requires dynamic data
 export const prerender = false;
@@ -76,21 +75,6 @@ try {
 
   const itemsData: SetItemListResponse = await itemsResponse.json();
 
-  // Fetch stop metadata for the set
-  const stopsResponse = await fetch(`${origin}/api/ztm/sets/${setId}/stops?t=${Date.now()}`, {
-    headers: {
-      cookie: cookieHeader,
-      "Cache-Control": "no-cache, no-store, must-revalidate",
-      Pragma: "no-cache",
-    },
-  });
-
-  if (!stopsResponse.ok) {
-    return Astro.redirect("/dashboard");
-  }
-
-  const stopsData: GetZtmSetStopsResponse = await stopsResponse.json();
-
   // Fetch all user's sets (for SetSelect)
   const setsResponse = await fetch(`${origin}/api/sets?t=${Date.now()}`, {
     headers: {
@@ -110,12 +94,12 @@ try {
   initialData = {
     setId,
     items: itemsData.items,
-    stops: stopsData.stops,
     sets: setsListData.sets,
   };
 
   // NOTE: departures are NOT fetched here - loaded client-side in onMount()
   // NOTE: allStops are NOT fetched here - loaded by stopsStore client-side
+  // NOTE: stops metadata is NOT fetched here - loaded client-side in onMount()
 } catch {
   return Astro.redirect("/dashboard");
 }
@@ -135,11 +119,6 @@ const pageTitle = currentSet ? `${currentSet.name} - Dashboard` : "Dashboard";
     </div>
 
     <!-- Main Content -->
-    <SetDashboardView
-      setId={initialData.setId}
-      initialItems={initialData.items}
-      initialStops={initialData.stops}
-      client:load
-    />
+    <SetDashboardView setId={initialData.setId} initialItems={initialData.items} client:load />
   </AppLayout>
 </Layout>

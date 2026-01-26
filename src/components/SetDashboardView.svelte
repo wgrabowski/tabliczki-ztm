@@ -29,26 +29,20 @@
 
   export let setId: string;
   export let initialItems: SetItemDTO[];
-  export let initialStops: ZtmSetStopDTO[];
   // Note: sets prop removed - used directly in parent .astro for SetSelect
 
   // Note: departures are NOT passed as props - loaded in onMount() without blocking
+  // Note: stops metadata is NOT passed as props - loaded in onMount() without blocking
   // Note: header-left components are rendered in parent .astro file
 
   // ============================================================================
   // Local State
   // ============================================================================
 
-  // Convert initialStops array to dictionary keyed by stop_id
-  const initialStopsDict = initialStops.reduce((acc, stop) => {
-    acc[stop.stop_id] = stop;
-    return acc;
-  }, {} as Record<number, ZtmSetStopDTO>);
-
   let state: SetDashboardState = {
     items: initialItems,
     departuresData: null, // Loaded in onMount()
-    stopsData: initialStopsDict,
+    stopsData: {}, // Loaded in onMount()
     errorCount: 0,
     isRefreshing: false,
     isInitialLoad: true, // True until first departures load
@@ -75,14 +69,19 @@
     // 1. Start loading stops in background (for AddStopDialog)
     stopsStore.load(); // Lazy loading - doesn't block rendering
 
-    // 2. Load initial departures data WITHOUT waiting (doesn't block rendering)
+    // 2. Load stops metadata (for StopCards)
     // ONLY if there are items in the set
     if (state.items.length > 0) {
-      loadDeparturesAndStartCycle();
       loadStops();
     }
 
-    // 3. Setup Page Visibility API - pause cycle when tab is hidden
+    // 3. Load initial departures data WITHOUT waiting (doesn't block rendering)
+    // ONLY if there are items in the set
+    if (state.items.length > 0) {
+      loadDeparturesAndStartCycle();
+    }
+
+    // 4. Setup Page Visibility API - pause cycle when tab is hidden
     visibilityChangeHandler = handleVisibilityChange;
     document.addEventListener("visibilitychange", visibilityChangeHandler);
   });

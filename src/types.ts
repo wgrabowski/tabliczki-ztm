@@ -270,12 +270,11 @@ export interface SetDashboardInitialData {
   setId: string;
   /** List of items in the set */
   items: SetItemDTO[];
-  /** Stop metadata for items in the set */
-  stops: import("./ztm-types").ZtmSetStopDTO[];
   /** All user's sets (for SetSelect) */
   sets: SetDTO[];
   // Note: departures are NOT passed - loaded in onMount() without blocking rendering
   // Note: allStops are NOT passed - loaded by stopsStore client-side
+  // Note: stops metadata is NOT passed - loaded in onMount() without blocking rendering
 }
 
 /**
