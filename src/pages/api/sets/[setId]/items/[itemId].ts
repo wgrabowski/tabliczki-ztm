@@ -1,8 +1,8 @@
 import type { APIRoute } from "astro";
-import { getUserId } from "../../../../../lib/auth/get-user-id.ts";
-import { mapDatabaseError } from "../../../../../lib/errors/db-errors.ts";
-import { deleteSetItem, getAllSetItems, verifySetOwnership } from "../../../../../lib/services/set-items.service.ts";
-import type { DeleteSetItemResponse, ErrorResponse } from "../../../../../types.ts";
+import { getUserId } from "@lib/auth/get-user-id.ts";
+import { mapDatabaseError } from "@lib/errors/db-errors.ts";
+import { deleteSetItem, getAllSetItems, verifySetOwnership } from "@services/set-items.service.ts";
+import type { DeleteSetItemResponse, ErrorResponse } from "@types";
 
 export const prerender = false;
 

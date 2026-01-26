@@ -1,5 +1,5 @@
 import { writable } from "svelte/store";
-import type { Toast } from "../../types";
+import type { Toast } from "@types";
 
 /**
  * Custom store for managing toast notifications

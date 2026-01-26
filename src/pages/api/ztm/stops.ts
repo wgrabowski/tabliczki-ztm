@@ -1,9 +1,9 @@
 import type { APIRoute } from "astro";
 
-import { getStops, ZtmServiceError } from "../../../lib/services/ztm.service.ts";
-import { ztmStopsQuerySchema } from "../../../lib/validation/ztm.validation.ts";
-import type { ErrorResponse } from "../../../types.ts";
-import type { GetZtmStopsResponse } from "../../../ztm-types.ts";
+import { getStops, ZtmServiceError } from "@services/ztm.service.ts";
+import { ztmStopsQuerySchema } from "@lib/validation/ztm.validation.ts";
+import type { ErrorResponse } from "@types";
+import type { GetZtmStopsResponse } from "@ztm-types";
 
 export const prerender = false;
 

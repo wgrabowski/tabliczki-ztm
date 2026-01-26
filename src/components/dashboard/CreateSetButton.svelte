@@ -1,8 +1,8 @@
 <script lang="ts">
-  import IconButton from "./base/IconButton.svelte";
-  import Prompt from "./base/Prompt.svelte";
-  import TextInput from "./base/TextInput.svelte";
-  import Button from "./base/Button.svelte";
+  import IconButton from "@components/base/IconButton.svelte";
+  import Prompt from "@components/base/Prompt.svelte";
+  import TextInput from "@components/base/TextInput.svelte";
+  import Button from "@components/base/Button.svelte";
 
   /**
    * Button that opens a dialog to create a new set

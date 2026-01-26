@@ -1,8 +1,8 @@
 <script lang="ts">
-  import GlobalPreloader from "../components/GlobalPreloader.svelte";
-  import ToastStack from "../components/ToastStack.svelte";
-  import Clock from "../components/Clock.svelte";
-  import ThemeToggle from "../components/ThemeToggle.svelte";
+  import GlobalPreloader from "@components/layout/GlobalPreloader.svelte";
+  import ToastStack from "@components/layout/ToastStack.svelte";
+  import Clock from "@components/shared/Clock.svelte";
+  import ThemeToggle from "@components/shared/ThemeToggle.svelte";
 
   /**
    * Shared application layout with header, global UI components

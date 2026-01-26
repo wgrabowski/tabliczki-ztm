@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { SetDTO } from "../types";
+  import type { SetDTO } from "@types";
 
   /**
    * Dropdown for switching between user's sets

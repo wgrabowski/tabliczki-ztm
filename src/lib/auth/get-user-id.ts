@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "../../db/supabase.client.ts";
-import type { ErrorResponse } from "../../types.ts";
+import type { ErrorResponse } from "@types";
 
 /**
  * Result of getUserId operation

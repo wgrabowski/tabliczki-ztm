@@ -2,14 +2,14 @@
   import { onMount, onDestroy } from "svelte";
   import TvHeader from "./TvHeader.svelte";
   import TvErrorScreen from "./TvErrorScreen.svelte";
-  import DeparturesList from "./DeparturesList.svelte";
+  import DeparturesList from "@components/shared/departures/DeparturesList.svelte";
   import type {
     ZtmDepartureDTO,
     ZtmDeparturesUpstreamResponseDTO,
     ZtmStopDTO,
     ZtmErrorCode,
-  } from "../ztm-types";
-  import type { ErrorResponse } from "../types";
+  } from "@ztm-types";
+  import type { ErrorResponse } from "@types";
 
   /**
    * TV View - Public fullscreen departure board

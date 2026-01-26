@@ -196,7 +196,7 @@ The project’s QA assumptions, scenarios, and acceptance criteria are described
   - Session persistence (“remember me” behavior)
 - **Stop-board sets**
   - Up to **6 sets** per user
-  - Set name up to **10 characters**
+  - Set name up to **20 characters**
   - Rename inline on the sets list (save on Enter / blur)
   - Delete sets (with their content)
 - **Dashboard**

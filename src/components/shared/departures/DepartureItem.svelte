@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { ZtmDepartureDTO } from "../ztm-types";
+  import type { ZtmDepartureDTO } from "@ztm-types";
 
   /**
    * Single departure item displaying:

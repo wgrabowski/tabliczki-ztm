@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { toastsStore } from "../lib/stores/toasts.store";
-  import type { Toast } from "../types";
+  import { toastsStore } from "@stores/toasts.store";
+  import type { Toast } from "@types";
 
   /**
    * Toast notifications container

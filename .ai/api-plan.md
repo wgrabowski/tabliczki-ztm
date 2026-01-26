@@ -2,7 +2,7 @@
 
 ## 1. Resources
 
-- **Set** (`public.sets`): represents a user-owned dashboard configuration. Indexed by `user_id` for fast lookups; the unique index on `(user_id, btrim(name))` enforces per-user trimmed-name uniqueness with a 1–10 character limit.
+- **Set** (`public.sets`): represents a user-owned dashboard configuration. Indexed by `user_id` for fast lookups; the unique index on `(user_id, btrim(name))` enforces per-user trimmed-name uniqueness with a 1–20 character limit.
 - **SetItem** (`public.set_items`): links a set to a `stop_id`, tracks `position`, and prevents duplicate stops per set via the `(set_id, stop_id)` unique index. The `position >= 1` constraint and `MAX(position)+1` trigger define ordering behavior.
 - **PublicStopSnapshot** (Edge/Proxy view): derived payload combining `set_items` with cached ZTM stop data to power dashboards and TV mode. Not a physical table, but built on the existing data plus the external API.
 
@@ -27,7 +27,7 @@
   - Response: `{ sets: [...] , created_set: { id, name } }`
   - Success: `201 Created`
   - Errors:
-    - `400 Bad Request` for missing/invalid name (trimmed length must be 1‑10 characters).
+    - `400 Bad Request` for missing/invalid name (trimmed length must be 1‑20 characters).
     - `409 Conflict` when a trimmed name already exists for the user.
     - `400 Bad Request` with `MAX_SETS_PER_USER_EXCEEDED` when database trigger rejects insert after 6 sets.
     - `401 Unauthorized`
@@ -36,7 +36,7 @@
 - **PATCH /api/sets/{setId}** ✅ IMPLEMENTED
   - Description: rename a set the owner controls.
   - URL Params: `setId` (UUID)
-  - Body: `{ name: string }` (1-10 characters after trimming)
+  - Body: `{ name: string }` (1-20 characters after trimming)
   - Response: `{ sets: [...], updated_set: { id, name } }`
   - Success: `200 OK`
   - Errors:
@@ -103,7 +103,7 @@
 ## 4. Validation and Business Logic
 
 - **Sets**
-  - Validate `name` is present after trimming, length 1–10 characters (matches `CHECK (char_length(btrim(name)) > 0)` & `<= 10`).
+  - Validate `name` is present after trimming, length 1–20 characters (matches `CHECK (char_length(btrim(name)) > 0)` & `<= 20`).
   - Enforce unique trimmed names per user before insert/update to avoid DB conflicts; handle `sets_user_id_btrim_name_uniq`.
   - Enforce maximum 6 sets per user; bubble up `MAX_SETS_PER_USER_EXCEEDED` trigger error as `400/409`.
   - Leverage DB `gen_random_uuid()` default for `id`.

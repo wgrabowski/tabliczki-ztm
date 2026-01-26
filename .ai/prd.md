@@ -27,7 +27,7 @@ a. System uwierzytelniania:
 b. Zarządzanie zestawami tablic:
 
 - Tworzenie do 6 zestawów przystanków przez zalogowanego użytkownika.
-- Nadawanie nazw zestawom (limit 10 znaków).
+- Nadawanie nazw zestawom (limit 20 znaków).
 - Edycja nazw zestawów bezpośrednio na liście zestawów (dashboard) – zmiana zapisywana po zatwierdzeniu (np. Enter) lub utracie fokusu.
 - Usuwanie całych zestawów wraz z zawartością.
 
@@ -111,7 +111,7 @@ Kryteria akceptacji:
 
 - Edycja odbywa się bezpośrednio na liście zestawów (dashboard) w polu tekstowym.
 - Zmiana zapisuje się automatycznie po naciśnięciu Enter lub utracie fokusu.
-- Obowiązuje limit 10 znaków.
+- Obowiązuje limit 20 znaków.
 
 ID: US-004
 Tytuł: Wyszukiwanie i dodawanie przystanków

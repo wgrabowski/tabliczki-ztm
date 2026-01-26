@@ -32,6 +32,12 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@components": path.resolve(__dirname, "./src/components"),
+      "@lib": path.resolve(__dirname, "./src/lib"),
+      "@stores": path.resolve(__dirname, "./src/lib/stores"),
+      "@services": path.resolve(__dirname, "./src/lib/services"),
+      "@types": path.resolve(__dirname, "./src/types.ts"),
+      "@ztm-types": path.resolve(__dirname, "./src/ztm-types.ts"),
     },
   },
 });

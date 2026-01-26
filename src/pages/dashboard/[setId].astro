@@ -1,12 +1,12 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import AppLayout from "../../layouts/AppLayout.svelte";
-import SetDashboardView from "../../components/SetDashboardView.svelte";
-import AccountButton from "../../components/AccountButton.svelte";
-import BackToDashboardButton from "../../components/BackToDashboardButton.svelte";
-import SetSelect from "../../components/SetSelect.svelte";
-import { getUserId } from "../../lib/auth/get-user-id";
-import type { SetDashboardInitialData, SetListResponse, SetItemListResponse } from "../../types";
+import SetDashboardView from "@components/dashboard-set/SetDashboardView.svelte";
+import AccountButton from "@components/layout/AccountButton.svelte";
+import BackToDashboardButton from "@components/layout/BackToDashboardButton.svelte";
+import SetSelect from "@components/layout/SetSelect.svelte";
+import { getUserId } from "@lib/auth/get-user-id";
+import type { SetDashboardInitialData, SetListResponse, SetItemListResponse } from "@types";
 
 // Disable prerendering - this page requires dynamic data
 export const prerender = false;

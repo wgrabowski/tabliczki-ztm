@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { ZtmErrorCode } from "../ztm-types";
+  import type { ZtmErrorCode } from "@ztm-types";
 
   /**
    * TV Error Screen - Fullscreen error display with reload button

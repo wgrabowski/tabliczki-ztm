@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Clock from "./Clock.svelte";
-  import ThemeToggle from "./ThemeToggle.svelte";
+  import Clock from "@components/shared/Clock.svelte";
+  import ThemeToggle from "@components/shared/ThemeToggle.svelte";
 
   /**
    * TV Header - Top bar with stop name, clock and theme toggle

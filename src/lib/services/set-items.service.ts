@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "../../db/supabase.client.ts";
-import type { SetItemDTO, SetItemEntity } from "../../types.ts";
+import type { SetItemDTO, SetItemEntity } from "@types";
 
 /**
  * Verifies that a set exists and belongs to the specified user

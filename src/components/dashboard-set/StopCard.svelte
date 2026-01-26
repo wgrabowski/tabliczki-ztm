@@ -1,10 +1,10 @@
 <script lang="ts">
-  import Card from "./base/Card.svelte";
-  import IconButton from "./base/IconButton.svelte";
-  import StateInfo from "./base/StateInfo.svelte";
-  import DeparturesList from "./DeparturesList.svelte";
+  import Card from "@components/base/Card.svelte";
+  import IconButton from "@components/base/IconButton.svelte";
+  import StateInfo from "@components/base/StateInfo.svelte";
+  import DeparturesList from "@components/shared/departures/DeparturesList.svelte";
   import Ticker from "./Ticker.svelte";
-  import type { ZtmStopDTO, ZtmDepartureDTO, ZtmSetStopDeparturesErrorDTO } from "../ztm-types";
+  import type { ZtmStopDTO, ZtmDepartureDTO, ZtmSetStopDeparturesErrorDTO } from "@ztm-types";
 
   /**
    * Stop card displaying departures for a single stop

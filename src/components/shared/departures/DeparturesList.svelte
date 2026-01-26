@@ -1,7 +1,7 @@
 <script lang="ts">
   import DepartureItem from "./DepartureItem.svelte";
-  import IconButton from "./base/IconButton.svelte";
-  import type { ZtmDepartureDTO } from "../ztm-types";
+  import IconButton from "@components/base/IconButton.svelte";
+  import type { ZtmDepartureDTO } from "@ztm-types";
 
   /**
    * Departures list with pagination (6 visible items per page)

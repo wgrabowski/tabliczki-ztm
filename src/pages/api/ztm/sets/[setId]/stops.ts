@@ -1,12 +1,12 @@
 import type { APIRoute } from "astro";
 
-import { getUserId } from "../../../../../lib/auth/get-user-id.ts";
-import { mapDatabaseError } from "../../../../../lib/errors/db-errors.ts";
-import { getAllSetItems, verifySetOwnership } from "../../../../../lib/services/set-items.service.ts";
-import { getStops, ZtmServiceError } from "../../../../../lib/services/ztm.service.ts";
-import { deleteSetParamsSchema } from "../../../../../lib/validation/sets.validation.ts";
-import type { ErrorResponse } from "../../../../../types.ts";
-import type { GetZtmSetStopsResponse, ZtmSetStopDTO } from "../../../../../ztm-types.ts";
+import { getUserId } from "@lib/auth/get-user-id.ts";
+import { mapDatabaseError } from "@lib/errors/db-errors.ts";
+import { getAllSetItems, verifySetOwnership } from "@services/set-items.service.ts";
+import { getStops, ZtmServiceError } from "@services/ztm.service.ts";
+import { deleteSetParamsSchema } from "@lib/validation/sets.validation.ts";
+import type { ErrorResponse } from "@types";
+import type { GetZtmSetStopsResponse, ZtmSetStopDTO } from "@ztm-types";
 
 export const prerender = false;
 

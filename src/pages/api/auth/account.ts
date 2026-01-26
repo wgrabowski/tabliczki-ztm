@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 
 import { createSupabaseServerInstance } from "../../../db/supabase.client.ts";
 import type { Database } from "../../../db/database.types.ts";
-import type { ErrorResponse } from "../../../types.ts";
+import type { ErrorResponse } from "@types";
 
 export const prerender = false;
 

@@ -1,10 +1,10 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import AppLayout from "../../layouts/AppLayout.svelte";
-import SetsDashboard from "../../components/SetsDashboard.svelte";
-import AccountButton from "../../components/AccountButton.svelte";
-import { getUserId } from "../../lib/auth/get-user-id";
-import type { SetListResponse } from "../../types";
+import SetsDashboard from "@components/dashboard/SetsDashboard.svelte";
+import AccountButton from "@components/layout/AccountButton.svelte";
+import { getUserId } from "@lib/auth/get-user-id";
+import type { SetListResponse } from "@types";
 
 // Disable prerendering - this page requires dynamic data
 export const prerender = false;

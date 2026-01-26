@@ -1,10 +1,10 @@
 import type { APIRoute } from "astro";
 
-import { getUserId } from "../../../lib/auth/get-user-id.ts";
-import { mapDatabaseError } from "../../../lib/errors/db-errors.ts";
-import { deleteSet, getAllUserSetsWithCounts, updateSet } from "../../../lib/services/sets.service.ts";
-import { updateSetCommandSchema } from "../../../lib/validation/sets.validation.ts";
-import type { DeleteSetResponse, ErrorResponse, UpdateSetResponse } from "../../../types.ts";
+import { getUserId } from "@lib/auth/get-user-id.ts";
+import { mapDatabaseError } from "@lib/errors/db-errors.ts";
+import { deleteSet, getAllUserSetsWithCounts, updateSet } from "@services/sets.service.ts";
+import { updateSetCommandSchema } from "@lib/validation/sets.validation.ts";
+import type { DeleteSetResponse, ErrorResponse, UpdateSetResponse } from "@types";
 
 /**
  * Disable prerendering for this API endpoint

@@ -162,7 +162,7 @@ interface ErrorResponse {
 ```json
 {
   "code": "INVALID_SET_NAME",
-  "message": "Set name must be between 1 and 10 characters after trimming"
+  "message": "Set name must be between 1 and 20 characters after trimming"
 }
 ```
 
@@ -228,7 +228,7 @@ interface ErrorResponse {
    ↓
 4. Walidacja Zod Schema (struktura + typy)
    ↓
-5. Trim name + walidacja długości (1-10 chars)
+5. Trim name + walidacja długości (1-20 chars)
    ↓
 6. Pobranie user_id z sesji (getUser())
    ↓ [authenticated]
@@ -330,8 +330,8 @@ ORDER BY s.name;
 | Brak tokenu JWT       | Middleware           | 401         | UNAUTHORIZED               | Authentication required                      |
 | Nieprawidłowy JWT     | getUser()            | 401         | UNAUTHORIZED               | Invalid or expired token                     |
 | Brak pola `name`      | Zod validation       | 400         | INVALID_SET_NAME           | Set name is required                         |
-| Puste `name` po trim  | Custom validation    | 400         | INVALID_SET_NAME           | Set name must be between 1 and 10 characters |
-| `name` > 10 znaków    | Custom validation    | 400         | INVALID_SET_NAME           | Set name must be between 1 and 10 characters |
+| Puste `name` po trim  | Custom validation    | 400         | INVALID_SET_NAME           | Set name must be between 1 and 20 characters |
+| `name` > 20 znaków    | Custom validation    | 400         | INVALID_SET_NAME           | Set name must be between 1 and 20 characters |
 | Duplikat nazwy        | Unique index (23505) | 409         | DUPLICATE_SET_NAME         | A set with this name already exists          |
 | Przekroczono limit 6  | Trigger              | 400         | MAX_SETS_PER_USER_EXCEEDED | Maximum number of sets (6) reached           |
 | RLS blokuje INSERT    | PostgreSQL (42501)   | 403         | FORBIDDEN                  | Access denied                                |
@@ -395,7 +395,7 @@ export const createSetCommandSchema = z.object({
     .string({ required_error: "Set name is required" })
     .trim()
     .min(1, "Set name must be at least 1 character")
-    .max(10, "Set name must be at most 10 characters"),
+    .max(20, "Set name must be at most 20 characters"),
 });
 
 export type CreateSetCommandInput = z.infer<typeof createSetCommandSchema>;

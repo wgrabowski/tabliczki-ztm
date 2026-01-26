@@ -162,7 +162,7 @@ interface ErrorResponse {
 ```json
 {
   "code": "INVALID_SET_NAME",
-  "message": "Set name must be between 1 and 10 characters"
+  "message": "Set name must be between 1 and 20 characters"
 }
 ```
 
@@ -335,7 +335,7 @@ ORDER BY s.name;
 | Nieprawidłowy JSON  | JSON.parse()           | 400         | INVALID_SET_NAME   | Invalid JSON body                      |
 | Brak pola name      | Zod validation         | 400         | INVALID_SET_NAME   | Set name is required                   |
 | Puste name po trim  | Zod validation         | 400         | INVALID_SET_NAME   | Set name must be at least 1 character  |
-| name > 10 znaków    | Zod validation         | 400         | INVALID_SET_NAME   | Set name must be at most 10 characters |
+| name > 20 znaków    | Zod validation         | 400         | INVALID_SET_NAME   | Set name must be at most 20 characters |
 | Zestaw nie istnieje | updateSet (rowCount=0) | 404         | SET_NOT_FOUND      | Set not found or access denied         |
 | Cudzy zestaw        | updateSet (rowCount=0) | 404         | SET_NOT_FOUND      | Set not found or access denied         |
 | Duplikat nazwy      | Unique index (23505)   | 409         | DUPLICATE_SET_NAME | A set with this name already exists    |
@@ -398,7 +398,7 @@ export const updateSetCommandSchema = z.object({
     .string({ required_error: "Set name is required" })
     .trim()
     .min(1, "Set name must be at least 1 character")
-    .max(10, "Set name must be at most 10 characters"),
+    .max(20, "Set name must be at most 20 characters"),
 });
 ```
 

@@ -1,12 +1,12 @@
 <script lang="ts">
-  import Modal from "./base/Modal.svelte";
-  import Button from "./base/Button.svelte";
-  import Autocomplete from "./base/Autocomplete.svelte";
-  import type { AutocompleteItem } from "./base/Autocomplete.svelte";
-  import { stopsStore } from "../lib/stores/stops.store";
-  import { toastsStore } from "../lib/stores/toasts.store";
-  import { setGlobalLoading } from "../lib/stores/global-loading.store";
-  import type { CreateSetItemResponse } from "../types";
+  import Modal from "@components/base/Modal.svelte";
+  import Button from "@components/base/Button.svelte";
+  import Autocomplete from "@components/base/Autocomplete.svelte";
+  import type { AutocompleteItem } from "@components/base/Autocomplete.svelte";
+  import { stopsStore } from "@stores/stops.store";
+  import { toastsStore } from "@stores/toasts.store";
+  import { setGlobalLoading } from "@stores/global-loading.store";
+  import type { CreateSetItemResponse } from "@types";
 
   /**
    * Dialog for adding a new stop to the set

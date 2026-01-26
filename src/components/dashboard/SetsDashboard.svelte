@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { setGlobalLoading } from "../lib/stores/global-loading.store";
-  import { toastsStore } from "../lib/stores/toasts.store";
-  import DashboardGrid from "./DashboardGrid.svelte";
+  import { setGlobalLoading } from "@stores/global-loading.store";
+  import { toastsStore } from "@stores/toasts.store";
+  import DashboardGrid from "@components/shared/DashboardGrid.svelte";
   import SetCard from "./SetCard.svelte";
   import CreateSetButton from "./CreateSetButton.svelte";
-  import ConfirmDialog from "./ConfirmDialog.svelte";
-  import type { SetDTO, ConfirmDialogState, ErrorResponse } from "../types";
+  import ConfirmDialog from "@components/shared/ConfirmDialog.svelte";
+  import type { SetDTO, ConfirmDialogState, ErrorResponse } from "@types";
 
   /**
    * Main dashboard component orchestrating set management

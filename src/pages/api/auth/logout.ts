@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 
 import { createSupabaseServerInstance } from "../../../db/supabase.client.ts";
-import type { ErrorResponse } from "../../../types.ts";
+import type { ErrorResponse } from "@types";
 
 export const prerender = false;
 

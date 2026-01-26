@@ -249,7 +249,7 @@ Karta pojedynczego zestawu wyświetlająca nazwę, liczbę elementów oraz umoż
 - `<form>` - formularz edycji nazwy (inline, w treści karty poniżej nagłówka)
   - W trybie edycji:
     - `<TextInput>` - komponent bazowy pola tekstowego
-      - Props: `type="text"`, `maxlength="10"`, `pattern=".*\S.*"`, `required`
+      - Props: `type="text"`, `maxlength="20"`, `pattern=".*\S.*"`, `required`
     - `<IconButton>` - zapisz (submit)
       - Props: `icon="check"`, `title="Zapisz"`, `type="submit"`, `variant="default"`
     - `<IconButton>` - anuluj (reset)
@@ -268,7 +268,7 @@ Karta pojedynczego zestawu wyświetlająca nazwę, liczbę elementów oraz umoż
 **Warunki walidacji:**
 
 - `required` - nazwa nie może być pusta
-- `maxlength="10"` - limit 10 znaków
+- `maxlength="20"` - limit 20 znaków
 - `pattern=".*\S.*"` - przynajmniej jeden znak nie będący białym znakiem (blokuje same spacje)
 - Walidacja HTML5 blokuje submit przy niepoprawnych danych
 - Komunikaty błędów wyświetlane natywnie przez przeglądarkę przy polu
@@ -321,7 +321,7 @@ Duży przycisk otwierający dialog z formularzem tworzenia nowego zestawu. Widoc
   - Props: `isOpen={isDialogOpen}`, `title="Nowy zestaw"`
   - `<form method="dialog">` - formularz z automatycznym zamknięciem
     - `<TextInput>` - pole nazwy
-      - Props: `type="text"`, `name="name"`, `placeholder="Nazwa zestawu"`, `maxlength="10"`, `pattern=".*\S.*"`, `required`, `autofocus`
+      - Props: `type="text"`, `name="name"`, `placeholder="Nazwa zestawu"`, `maxlength="20"`, `pattern=".*\S.*"`, `required`, `autofocus`
     - `<Button>` - zapisz
       - Props: `type="submit"`, `variant="primary"`, `disabled={isLoading}`
     - `<Button>` - anuluj
@@ -337,7 +337,7 @@ Duży przycisk otwierający dialog z formularzem tworzenia nowego zestawu. Widoc
 **Warunki walidacji:**
 
 - `required` - nazwa nie może być pusta
-- `maxlength="10"` - limit 10 znaków
+- `maxlength="20"` - limit 20 znaków
 - `pattern=".*\S.*"` - przynajmniej jeden znak nie będący białym znakiem
 - Walidacja HTML5 blokuje submit przy niepoprawnych danych
 - Komunikaty błędów wyświetlane natywnie przez przeglądarkę przy polu
@@ -1229,7 +1229,7 @@ async function handleDeleteSet(setId: string) {
 **Warunki:**
 
 1. `required` - pole nie może być puste
-2. `maxlength="10"` - maksymalnie 10 znaków
+2. `maxlength="20"` - maksymalnie 20 znaków
 3. `pattern=".*\S.*"` - przynajmniej jeden znak nie będący białym znakiem (blokuje same spacje/taby)
 
 **Wpływ na UI:**
@@ -1245,9 +1245,9 @@ async function handleDeleteSet(setId: string) {
   name="name"
   bind:value={editedName}
   required
-  maxlength="10"
+  maxlength="20"
   pattern=".*\S.*"
-  title="Nazwa musi mieć od 1 do 10 znaków i zawierać przynajmniej jedną literę lub cyfrę"
+  title="Nazwa musi mieć od 1 do 20 znaków i zawierać przynajmniej jedną literę lub cyfrę"
 />
 ```
 
@@ -1336,7 +1336,7 @@ if (response.status === 401) {
 | Warunek                                | Gdzie weryfikowany | Komponent                | Efekt niepowodzenia                       |
 | -------------------------------------- | ------------------ | ------------------------ | ----------------------------------------- |
 | `sets.length < 6`                      | Frontend (UI)      | SetsDashboard            | Ukrycie przycisku "Dodaj zestaw"          |
-| `name` required, 1-10 chars, non-empty | Frontend (HTML5)   | SetCard, CreateSetButton | Blokada submit, natywny komunikat         |
+| `name` required, 1-20 chars, non-empty | Frontend (HTML5)   | SetCard, CreateSetButton | Blokada submit, natywny komunikat         |
 | Unikalność nazwy                       | Backend (DB)       | API                      | Toast: "Zestaw o tej nazwie już istnieje" |
 | Max 6 zestawów                         | Backend (trigger)  | API                      | Toast: "Osiągnięto limit 6 zestawów"      |
 | Autoryzacja (sesja)                    | SSR + Backend      | DashboardPage, API       | Redirect do `/login`                      |
@@ -1567,7 +1567,7 @@ interface TextInputProps {
 
 **Użycie w widoku:**
 
-- `SetCard` - pole edycji nazwy zestawu (z walidacją: maxlength=10, pattern, required)
+- `SetCard` - pole edycji nazwy zestawu (z walidacją: maxlength=20, pattern, required)
 - `CreateSetButton` - pole nazwy w dialogu tworzenia (z walidacją)
 
 ---
@@ -1825,7 +1825,7 @@ Implementacja komponentów bazowych zgodnie z sekcją 11. Kolejność implementa
    - Zawartość karty (poniżej nagłówka):
      - Tryb wyświetlania: liczba elementów, opcjonalnie opis
      - Tryb edycji nazwy: `<form>` z komponentami:
-       - `<TextInput bind:value={editedName} maxlength={10} pattern=".*\S.*" required />`
+       - `<TextInput bind:value={editedName} maxlength={20} pattern=".*\S.*" required />`
        - `<IconButton icon="check" title="Zapisz" type="submit" variant="default" />`
        - `<IconButton icon="close" title="Anuluj" type="reset" variant="inverted" />`
    - Lokalny loader (spinner) podczas `isLoading`
@@ -1848,7 +1848,7 @@ Implementacja komponentów bazowych zgodnie z sekcją 11. Kolejność implementa
      - Stylizacja: border-dashed, wypełnia całą komórkę grida
    - Dialog: `<Dialog isOpen={isDialogOpen} title="Nowy zestaw" onClose={closeDialog}>`
      - Formularz:
-       - `<TextInput bind:value={newSetName} placeholder="Nazwa zestawu" maxlength={10} pattern=".*\S.*" required autofocus />`
+       - `<TextInput bind:value={newSetName} placeholder="Nazwa zestawu" maxlength={20} pattern=".*\S.*" required autofocus />`
        - `<Button type="submit" variant="primary" disabled={isLoading}>Zapisz</Button>`
        - `<Button type="button" variant="secondary" onClick={closeDialog}>Anuluj</Button>`
 6. Logika:

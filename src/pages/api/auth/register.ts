@@ -1,8 +1,8 @@
 import type { APIRoute } from "astro";
 
 import { createSupabaseServerInstance } from "../../../db/supabase.client.ts";
-import { registerCommandSchema } from "../../../lib/validation/auth.validation.ts";
-import type { ErrorResponse } from "../../../types.ts";
+import { registerCommandSchema } from "@lib/validation/auth.validation.ts";
+import type { ErrorResponse } from "@types";
 
 export const prerender = false;
 

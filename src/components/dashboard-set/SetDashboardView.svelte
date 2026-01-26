@@ -5,13 +5,13 @@
     SetItemDTO,
     SetDTO,
     CreateSetItemResponse,
-  } from "../types";
-  import type { ZtmSetStopDTO, GetZtmSetDeparturesResponse } from "../ztm-types";
-  import { toastsStore } from "../lib/stores/toasts.store";
-  import { setGlobalLoading } from "../lib/stores/global-loading.store";
-  import { stopsStore } from "../lib/stores/stops.store";
-  import DashboardGrid from "./DashboardGrid.svelte";
-  import ConfirmDialog from "./ConfirmDialog.svelte";
+  } from "@types";
+  import type { ZtmSetStopDTO, GetZtmSetDeparturesResponse } from "@ztm-types";
+  import { toastsStore } from "@stores/toasts.store";
+  import { setGlobalLoading } from "@stores/global-loading.store";
+  import { stopsStore } from "@stores/stops.store";
+  import DashboardGrid from "@components/shared/DashboardGrid.svelte";
+  import ConfirmDialog from "@components/shared/ConfirmDialog.svelte";
   import RefreshProgressBar from "./RefreshProgressBar.svelte";
   import StopCard from "./StopCard.svelte";
   import AddStopButton from "./AddStopButton.svelte";

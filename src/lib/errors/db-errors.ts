@@ -1,4 +1,4 @@
-import type { ErrorCode } from "../../types.ts";
+import type { ErrorCode } from "@types";
 
 /**
  * Error mapping result with HTTP status code

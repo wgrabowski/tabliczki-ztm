@@ -1,5 +1,5 @@
 <script lang="ts">
-  import IconButton from "./base/IconButton.svelte";
+  import IconButton from "@components/base/IconButton.svelte";
 
   /**
    * Button to navigate back to dashboard (sets list)

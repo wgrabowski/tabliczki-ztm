@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Prompt from "./base/Prompt.svelte";
-  import Button from "./base/Button.svelte";
+  import Prompt from "@components/base/Prompt.svelte";
+  import Button from "@components/base/Button.svelte";
 
   /**
    * Confirmation dialog for destructive actions

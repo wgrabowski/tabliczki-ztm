@@ -1,8 +1,8 @@
 <script lang="ts">
-  import Card from "./base/Card.svelte";
-  import IconButton from "./base/IconButton.svelte";
-  import TextInput from "./base/TextInput.svelte";
-  import type { SetDTO } from "../types";
+  import Card from "@components/base/Card.svelte";
+  import IconButton from "@components/base/IconButton.svelte";
+  import TextInput from "@components/base/TextInput.svelte";
+  import type { SetDTO } from "@types";
 
   /**
    * Card displaying a single set with inline editing

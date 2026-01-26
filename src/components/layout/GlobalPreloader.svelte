@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { globalLoadingStore } from "../lib/stores/global-loading.store";
+  import { globalLoadingStore } from "@stores/global-loading.store";
 
   /**
    * Full-screen preloader overlay

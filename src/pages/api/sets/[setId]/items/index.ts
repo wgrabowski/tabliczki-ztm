@@ -1,10 +1,10 @@
 import type { APIRoute } from "astro";
 
-import { getUserId } from "../../../../../lib/auth/get-user-id.ts";
-import { mapDatabaseError } from "../../../../../lib/errors/db-errors.ts";
-import { createSetItem, getAllSetItems, verifySetOwnership } from "../../../../../lib/services/set-items.service.ts";
-import { createSetItemCommandSchema } from "../../../../../lib/validation/sets.validation.ts";
-import type { CreateSetItemResponse, ErrorResponse, SetItemListResponse } from "../../../../../types.ts";
+import { getUserId } from "@lib/auth/get-user-id.ts";
+import { mapDatabaseError } from "@lib/errors/db-errors.ts";
+import { createSetItem, getAllSetItems, verifySetOwnership } from "@services/set-items.service.ts";
+import { createSetItemCommandSchema } from "@lib/validation/sets.validation.ts";
+import type { CreateSetItemResponse, ErrorResponse, SetItemListResponse } from "@types";
 
 /**
  * Disable prerendering for this API endpoint

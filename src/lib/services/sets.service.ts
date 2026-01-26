@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "../../db/supabase.client.ts";
-import type { SetDTO, SetEntity } from "../../types.ts";
+import type { SetDTO, SetEntity } from "@types";
 
 /**
  * Creates a new set for a user

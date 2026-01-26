@@ -67,7 +67,7 @@ Poniżej: widoki wymagane przez PRD + doprecyzowania z sesji planowania, wraz z 
   - `CreateSet` (duży przycisk otwierający `<dialog>` + `<form>`), widoczny tylko jeśli liczba zestawów < 6.
   - **Uwaga**: `GlobalPreloader` i `ToastStack` są częścią `AppLayout`, nie tego widoku. Widok używa `setGlobalLoading()` i `toastsStore.addToast()` do zarządzania nimi.
 - **UX, dostępność i względy bezpieczeństwa**:
-  - **Walidacja nazwy**: natywna walidacja HTML (`maxlength=10`, `pattern` blokujący puste/whitespace-only), blokowanie submit przez przeglądarkę z komunikatem przy polu.
+  - **Walidacja nazwy**: natywna walidacja HTML (`maxlength=20`, `pattern` blokujący puste/whitespace-only), blokowanie submit przez przeglądarkę z komunikatem przy polu.
   - **Loading**:
     - PATCH nazwy blokuje tylko daną kartę (lokalny loader w `SetCard`).
     - POST/DELETE pokazuje globalny preloader (wywołanie `setGlobalLoading(true)` z `globalLoadingStore`).
