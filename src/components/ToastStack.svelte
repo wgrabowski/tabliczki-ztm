@@ -79,19 +79,19 @@
   .toast--success {
     background-color: var(--theme--positive);
     border-color: var(--theme--positive);
-    color: var(--theme--accent-color);
+    color:black;
   }
 
   .toast--error {
     background-color: var(--theme--negative);
     border-color: var(--theme--negative);
-    color: var(--theme--bg-color);
+    color: black;
   }
 
   .toast--warning {
-    background-color: orange;
-    border-color: orange;
-    color: var(--theme--accent-color);
+    background-color: darkorange;
+    border-color: darkorange;
+    color: black;
   }
 
   .toast--info {

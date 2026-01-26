@@ -36,7 +36,7 @@
 
   .tv-header__stop-name {
     margin: 0;
-    font-size: 2.5rem;
+
     font-weight: normal;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -44,7 +44,7 @@
   }
 
   .tv-header__clock {
-    font-size: 2.5rem;
+ 
   }
 
   .tv-header__theme {
@@ -52,14 +52,6 @@
     align-items: center;
   }
 
-  /* Large screen optimizations */
-  @media (min-width: 1200px) {
-    .tv-header__stop-name {
-      font-size: 3rem;
-    }
 
-    .tv-header__clock {
-      font-size: 3rem;
-    }
-  }
+  
 </style>

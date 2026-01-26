@@ -39,10 +39,16 @@
   // Local State
   // ============================================================================
 
+  // Convert initialStops array to dictionary keyed by stop_id
+  const initialStopsDict = initialStops.reduce((acc, stop) => {
+    acc[stop.stop_id] = stop;
+    return acc;
+  }, {} as Record<number, ZtmSetStopDTO>);
+
   let state: SetDashboardState = {
     items: initialItems,
     departuresData: null, // Loaded in onMount()
-    stopsData: initialStops,
+    stopsData: initialStopsDict,
     errorCount: 0,
     isRefreshing: false,
     isInitialLoad: true, // True until first departures load
@@ -73,6 +79,7 @@
     // ONLY if there are items in the set
     if (state.items.length > 0) {
       loadDeparturesAndStartCycle();
+      loadStops();
     }
 
     // 3. Setup Page Visibility API - pause cycle when tab is hidden
@@ -235,6 +242,9 @@
     // Update items list
     state.items = response.items;
 
+    // Load updated stops data with the new stop
+    await loadStops();
+
     // If this was the first item added, start the cycle
     if (response.items.length === 1) {
       await loadDeparturesAndStartCycle();
@@ -306,6 +316,30 @@
     window.open(`/tv/${stopId}`, "_blank");
   }
 
+
+
+  async function loadStops() {
+    try {
+      const response = await fetch(`/api/ztm/sets/${setId}/stops`);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data: import("../ztm-types").GetZtmSetStopsResponse = await response.json();
+
+      // Convert stops array to dictionary keyed by stop_id
+      state.stopsData = data.stops.reduce((acc, stop) => {
+        acc[stop.stop_id] = stop;
+        return acc;
+      }, {} as Record<number, ZtmSetStopDTO>);
+
+    } catch (error) {
+      console.error("Failed to load stops:", error);
+      // Don't show toast - this is a background operation
+      // Stop names will just be missing from the UI but won't break functionality
+    }
+  }
 </script>
 
 <!-- Main Content (header-left is handled in .astro file) -->
@@ -334,7 +368,7 @@
     <DashboardGrid>
       <!-- Stop Cards -->
       {#each state.items as item (item.id)}
-        {@const stopData = state.stopsData.find(s => s.stop_id === item.stop_id)}
+        {@const stopData = state.stopsData[item.stop_id]}
         {@const stopIdKey = item.stop_id.toString()}
         {@const departures = state.departuresData?.ok ? (state.departuresData.data[stopIdKey] || null) : null}
         {@const error = state.departuresData?.ok === false ? (state.departuresData.error[stopIdKey] || null) : null}
@@ -378,7 +412,7 @@
 
 <style>
   .set-dashboard {
-    padding: var(--theme--spacing);
+    padding: var(--theme--spacing) 0;
   }
 
   .retry-section {
