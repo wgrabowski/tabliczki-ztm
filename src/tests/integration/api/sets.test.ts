@@ -74,11 +74,11 @@ describe("Sets API", () => {
       expect(data.code).toBe("INVALID_SET_NAME");
     });
 
-    it("should return 400 for set name longer than 10 characters", async () => {
+    it("should return 400 for set name longer than 20 characters", async () => {
       const context = createMockAPIContext({
         request: new Request("http://localhost:4321/api/sets", {
           method: "POST",
-          body: JSON.stringify({ name: "12345678901" }),
+          body: JSON.stringify({ name: "123456789012345678901" }),
           headers: { "Content-Type": "application/json" },
         }),
       });

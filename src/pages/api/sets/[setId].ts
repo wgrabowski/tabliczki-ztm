@@ -29,7 +29,7 @@ function isValidUUID(id: string): boolean {
  * - setId: UUID of the set to update
  *
  * Request body:
- * - name: string (1-10 characters after trimming)
+ * - name: string (1-20 characters after trimming)
  *
  * Returns:
  * - 200: Updated set with refreshed list of all user's sets

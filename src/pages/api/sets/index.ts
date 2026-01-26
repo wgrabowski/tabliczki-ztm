@@ -97,7 +97,7 @@ export const GET: APIRoute = async ({ url, locals }) => {
  * POST /api/sets - Create a new set for the authenticated user
  *
  * Request body:
- * - name: string (1-10 characters after trimming)
+ * - name: string (1-20 characters after trimming)
  *
  * Returns:
  * - 201: Created set with updated list of all user's sets

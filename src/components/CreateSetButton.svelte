@@ -56,7 +56,7 @@
     <TextInput
       bind:value={newSetName}
       placeholder="Nazwa zestawu"
-      maxlength={10}
+      maxlength={20}
       pattern=".*\S.*"
       required
       autofocus

@@ -25,7 +25,7 @@ export type SetItemEntity = Tables<"set_items">;
 export interface SetDTO {
   /** Unique identifier (UUID) */
   id: string;
-  /** Set name (1-10 characters, trimmed) */
+  /** Set name (1-20 characters, trimmed) */
   name: string;
   /** Owner's user ID */
   user_id: string;
@@ -46,10 +46,10 @@ export type SetDTOPublic = Omit<SetDTO, "user_id">;
 
 /**
  * Command to create a new set
- * Name must be 1-10 characters after trimming
+ * Name must be 1-20 characters after trimming
  */
 export interface CreateSetCommand {
-  /** Set name (will be trimmed, must be 1-10 chars) */
+  /** Set name (will be trimmed, must be 1-20 chars) */
   name: string;
 }
 
@@ -57,7 +57,7 @@ export interface CreateSetCommand {
  * Command to update an existing set
  */
 export interface UpdateSetCommand {
-  /** New set name (will be trimmed, must be 1-10 chars) */
+  /** New set name (will be trimmed, must be 1-20 chars) */
   name: string;
 }
 

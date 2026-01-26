@@ -76,14 +76,14 @@ test.describe("Dashboard - Sets Management", () => {
     }
   });
 
-  test("should not allow set name longer than 10 characters", async ({ page }) => {
+  test("should not allow set name longer than 20 characters", async ({ page }) => {
     const createButton = page.locator('button:has-text("Dodaj zestaw")');
 
     if (await createButton.isVisible()) {
       await createButton.click();
 
       const nameInput = page.locator('input[name="name"]');
-      await nameInput.fill("12345678901"); // 11 characters
+      await nameInput.fill("123456789012345678901"); // 21 characters
 
       await page.keyboard.press("Enter");
 

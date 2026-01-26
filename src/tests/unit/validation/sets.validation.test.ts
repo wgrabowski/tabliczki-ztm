@@ -7,7 +7,7 @@ import {
 
 describe("Sets Validation", () => {
   describe("createSetCommandSchema", () => {
-    it("should accept valid set name (1-10 characters)", () => {
+    it("should accept valid set name (1-20 characters)", () => {
       const result = createSetCommandSchema.safeParse({ name: "Do pracy" });
       expect(result.success).toBe(true);
       if (result.success) {
@@ -33,9 +33,19 @@ describe("Sets Validation", () => {
       expect(result.success).toBe(false);
     });
 
-    it("should reject set name longer than 10 characters", () => {
+    it("should accept set name with exactly 20 characters", () => {
       const result = createSetCommandSchema.safeParse({
-        name: "12345678901",
+        name: "12345678901234567890",
+      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.name).toBe("12345678901234567890");
+      }
+    });
+
+    it("should reject set name longer than 20 characters", () => {
+      const result = createSetCommandSchema.safeParse({
+        name: "123456789012345678901",
       });
       expect(result.success).toBe(false);
     });
@@ -54,7 +64,7 @@ describe("Sets Validation", () => {
 
     it("should apply same validation rules as createSetCommandSchema", () => {
       const tooLong = updateSetCommandSchema.safeParse({
-        name: "12345678901",
+        name: "123456789012345678901",
       });
       expect(tooLong.success).toBe(false);
 

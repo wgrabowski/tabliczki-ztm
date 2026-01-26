@@ -103,7 +103,7 @@
       <form class="set-card__edit-form" on:submit={handleSubmit}>
         <TextInput
           bind:value={editedName}
-          maxlength={10}
+          maxlength={20}
           pattern=".*\S.*"
           required
           autofocus
