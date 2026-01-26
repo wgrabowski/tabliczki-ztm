@@ -9,15 +9,14 @@
    * TV variant: no pagination, larger fonts
    */
   export let departures: ZtmDepartureDTO[];
-  export let variant: "default" | "tv" = "default";
   export let paginationDisabled = false;
 
   let currentOffset = 0;
   const itemsPerPage = 6;
 
-  // In TV mode or when pagination disabled, show all items
-  $: effectiveItemsPerPage = variant === "tv" || paginationDisabled ? departures.length : itemsPerPage;
-  $: showPagination = variant !== "tv" && !paginationDisabled && departures.length > itemsPerPage;
+  // When pagination disabled, show all items
+  $: effectiveItemsPerPage = paginationDisabled ? departures.length : itemsPerPage;
+  $: showPagination = !paginationDisabled && departures.length > itemsPerPage;
 
   // Calculate pagination values
   $: maxOffset = departures.length - effectiveItemsPerPage;
@@ -50,7 +49,7 @@
   }
 </script>
 
-<table class="departures-table" class:tv-variant={variant === "tv"}>
+<table class="departures-table">
   <colgroup>
     <col style="width: 1%" />
     <col style="width: 100%" />
@@ -66,7 +65,7 @@
 
   <tbody>
     {#each visibleDepartures as departure,index (departure.id + index) }
-      <DepartureItem {departure} {variant} />
+      <DepartureItem {departure} />
     {/each}
   </tbody>
 
@@ -100,6 +99,7 @@
 
 <style>
   .departures-table {
+    font-size: clamp(1rem, 2dvmin, 2.5rem);
     width: 100%;
     border-collapse: collapse;
     height: 100%;
@@ -127,20 +127,6 @@
     text-align: right;
   }
 
-  /* TV Variant - Larger fonts for readability */
-  .tv-variant thead th {
-    padding: calc(var(--theme--spacing) * 2);
-    font-size: 2rem;
-  }
 
-  .tv-variant tbody {
-    min-height: unset;
-  }
-
-  /* Large screen optimizations for TV */
-  @media (min-width: 1200px) {
-    .tv-variant thead th {
-      font-size: 2.5rem;
-    }
-  }
+  
 </style>

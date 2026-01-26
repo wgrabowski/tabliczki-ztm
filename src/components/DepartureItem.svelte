@@ -9,7 +9,6 @@
    * - Accessibility icons (wheelchair, bike) - TODO when API supports it
    */
   export let departure: ZtmDepartureDTO;
-  export let variant: "default" | "tv" = "default";
 
   // Calculate relative time from estimatedTime
   function getRelativeTime(estimatedTime: string): string {
@@ -36,7 +35,7 @@
   $: delayMinutes = hasDelay ? Math.floor(departure.delayInSeconds! / 60) : 0;
 </script>
 
-<tr class="departure-item" class:tv-variant={variant === "tv"}>
+<tr class="departure-item">
   <!-- Route Number -->
   <td class="departure-route">
     {departure.routeShortName || "?"}
@@ -52,14 +51,16 @@
 
   <!-- Time & Icons -->
   <td class="departure-time" class:realtime={isRealtime}>
-    <span class="time-display">{timeDisplay}</span>
+   
     
     <!-- Delay Badge (if applicable) -->
     {#if hasDelay}
       <span class="delay-badge" title="Opóźnienie: +{delayMinutes} min">
         +{delayMinutes}
       </span>
+    
     {/if}
+    <span class="time-display">{timeDisplay}</span>
 
     <!-- TODO: Accessibility icons when API supports them -->
     <!-- Bike icon: {#if departure.bikeAllowed}<span class="theme-icon">pedal_bike</span>{/if} -->
@@ -89,37 +90,16 @@
   }
 
   .delay-badge {
-    font-size: 0.75rem;
     padding: calc(var(--theme--spacing) / 2);
-    background: var(--theme--negative);
-    color: var(--theme--bg-color);
+    color: var(--theme--negative);
+    background-color: var(--theme--bg-color);
     border: 1px solid var(--theme--negative);
     white-space: nowrap;
+    display: none;
   }
 
-  /* TV Variant - Larger fonts */
-  .tv-variant td {
-    padding: calc(var(--theme--spacing) * 2);
-    font-size: 1.75rem;
-    border-bottom: 2px solid var(--theme--accent-color-dim);
-  }
+ 
 
-  .tv-variant .delay-badge {
-    font-size: 1.25rem;
-    padding: var(--theme--spacing);
-  }
-
-  /* Large screen optimizations for TV */
-  @media (min-width: 1200px) {
-    .tv-variant td {
-      font-size: 2.25rem;
-      padding: calc(var(--theme--spacing) * 3);
-    }
-
-    .tv-variant .delay-badge {
-      font-size: 1.5rem;
-    }
-  }
 
   /* Accessibility icons - will be used when API supports them */
   /* .theme-icon {

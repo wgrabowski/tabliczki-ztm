@@ -30,8 +30,8 @@
   --theme--accent-color-dim: light-dark(#333, darkgoldenrod);
 
   /* Status Colors */
-  --theme--positive: lightgreen;
-  --theme--negative: red;
+  --theme--positive: #5ba300;
+  --theme--negative: #e6308a;
 
   /* Spacing */
   --theme--spacing: 0.25em;
