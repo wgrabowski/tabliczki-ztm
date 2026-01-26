@@ -31,7 +31,7 @@
 
   /* Status Colors */
   --theme--positive: #5ba300;
-  --theme--negative: #e6308a;
+  --theme--negative: darkred;
 
   /* Spacing */
   --theme--spacing: 0.25em;
