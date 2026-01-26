@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import IconButton from "./base/IconButton.svelte";
+  import IconButton from "@components/base/IconButton.svelte";
 
   /**
    * Theme toggle button for light/dark mode

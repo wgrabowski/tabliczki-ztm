@@ -132,7 +132,7 @@ textarea:focus-visible {
 }
 
 /* Input Validation States */
-input:user-invalid {
+input:user-invalid:not([type="password"]) {
   border-color: var(--theme--negative);
 }
 
