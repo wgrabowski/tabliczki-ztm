@@ -35,8 +35,8 @@
     min-height: 100dvh;
     display: flex;
     flex-direction: column;
-    padding: var(--theme--spacing)
-    max-width: 1400px;
+    padding: var(--theme--spacing);
+    max-width: 2400px;
     margin: 0 auto;
     width: 96dvw;
   }
