@@ -99,7 +99,7 @@
 
 <style>
   .departures-table {
-    font-size: clamp(1rem, 2dvmin, 2.5rem);
+    font-size: clamp(1rem, 4dvmin, 3rem);
     width: 100%;
     border-collapse: collapse;
     height: 100%;
