@@ -122,9 +122,9 @@
   }
 
   .departures-footer {
-    padding: var(--theme--spacing);
-    border-top: 1px solid var(--theme--accent-color-dim);
+    padding:0 var(--theme--spacing);
     text-align: right;
+   
   }
 
 

@@ -6,7 +6,7 @@
    * Updates every minute
    */
 
-  let currentTime = "";
+  let currentTime = "--:--";// initial value to prevent layout shift
   let intervalId: ReturnType<typeof setInterval> | null = null;
 
   function updateTime() {

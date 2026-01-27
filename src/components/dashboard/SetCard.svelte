@@ -143,8 +143,8 @@
 
 <style>
   .set-card__content {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    place-items: center;
     gap: calc(var(--theme--spacing) * 2);
     min-height: 120px;
   }

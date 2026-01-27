@@ -3,6 +3,7 @@
   import IconButton from "@components/base/IconButton.svelte";
   import StateInfo from "@components/base/StateInfo.svelte";
   import DeparturesList from "@components/shared/departures/DeparturesList.svelte";
+  import DeparturesListSkeleton from "@components/shared/departures/DeparturesListSkeleton.svelte";
   import Ticker from "./Ticker.svelte";
   import type { ZtmStopDTO, ZtmDepartureDTO, ZtmSetStopDeparturesErrorDTO } from "@ztm-types";
 
@@ -60,7 +61,7 @@
   <!-- Content (state-dependent) -->
     {#if isLoading}
       <!-- Loading State: Skeleton -->
-     <StateInfo type="info" text="Ładowanie odjazdów..." />
+      <DeparturesListSkeleton />
 
     {:else if hasGlobalError}
       <!-- Global Error State -->
@@ -94,28 +95,5 @@
 </Card>
 
 <style>
-  /* Loading State */
-  .skeleton-container {
-    display: flex;
-    flex-direction: column;
-    gap: var(--theme--spacing);
-  }
-
-  .loading-message {
-    margin: 0 0 var(--theme--spacing) 0;
-    font-size: 0.875rem;
-    color: var(--theme--accent-color);
-    text-align: center;
-  }
-
-
-  @keyframes skeleton-pulse {
-    0%, 100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.4;
-    }
-  }
 
 </style>
