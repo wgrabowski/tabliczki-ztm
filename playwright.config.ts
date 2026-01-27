@@ -13,6 +13,9 @@ import { defineConfig, devices } from "@playwright/test";
  */
 export default defineConfig({
   testDir: "./src/tests/e2e",
+  /* Global setup and teardown */
+  globalSetup: "./src/tests/e2e/global-setup.ts",
+  globalTeardown: "./src/tests/e2e/global-teardown.ts",
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -43,7 +46,7 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: "npm run dev",
+    command: "npm run astro -- dev --port 4321",
     url: "http://localhost:4321",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

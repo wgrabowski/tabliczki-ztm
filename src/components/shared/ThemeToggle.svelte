@@ -37,4 +37,6 @@
   $: title = isDark ? "Przełącz na jasny motyw" : "Przełącz na ciemny motyw";
 </script>
 
-<IconButton {icon} {title} onClick={toggleTheme} variant="inverted" />
+<div data-testid="theme-toggle">
+  <IconButton {icon} {title} onClick={toggleTheme} variant="inverted" />
+</div>

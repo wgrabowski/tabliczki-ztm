@@ -49,7 +49,7 @@
   }
 </script>
 
-<table class="departures-table">
+<table class="departures-table" data-testid="departures-list">
   <colgroup>
     <col style="width: 1%" />
     <col style="width: 100%" />

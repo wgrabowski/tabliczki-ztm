@@ -10,13 +10,13 @@ test.describe("TV View (Public)", () => {
     await expect(page).toHaveURL(`/tv/${testStopId}`);
 
     // Should show stop name or fallback
-    await expect(page.locator('h1, [data-testid="stop-name"]')).toBeVisible();
+    await expect(page.getByTestId("stop-name")).toBeVisible();
   });
 
   test("should display clock in HH:mm format", async ({ page }) => {
     await page.goto(`/tv/${testStopId}`);
 
-    const clock = page.locator('[data-testid="clock"], .clock');
+    const clock = page.getByTestId("clock");
     await expect(clock).toBeVisible();
 
     // Check format: HH:mm
@@ -31,8 +31,8 @@ test.describe("TV View (Public)", () => {
     await page.waitForLoadState("networkidle");
 
     // Should show departures or error state
-    const departuresList = page.locator('[data-testid="departures-list"], .departures');
-    const errorScreen = page.locator('[data-testid="error-screen"]');
+    const departuresList = page.getByTestId("departures-list");
+    const errorScreen = page.getByTestId("error-screen");
 
     const hasDepartures = await departuresList.isVisible();
     const hasError = await errorScreen.isVisible();
@@ -45,7 +45,7 @@ test.describe("TV View (Public)", () => {
 
     // Should redirect to 404 or show error
     const is404 = page.url().includes("/404");
-    const hasError = await page.locator('[data-testid="error-screen"]').isVisible();
+    const hasError = await page.getByTestId("error-screen").isVisible();
 
     expect(is404 || hasError).toBe(true);
   });
@@ -53,7 +53,7 @@ test.describe("TV View (Public)", () => {
   test("should have theme toggle", async ({ page }) => {
     await page.goto(`/tv/${testStopId}`);
 
-    const themeToggle = page.locator('[data-testid="theme-toggle"], button[aria-label*="motyw"]');
+    const themeToggle = page.getByTestId("theme-toggle");
     await expect(themeToggle).toBeVisible();
   });
 
@@ -69,12 +69,11 @@ test.describe("TV View (Public)", () => {
     await page.goto(`/tv/${testStopId}`);
 
     // Wait for error state
-    await page.waitForSelector('[data-testid="error-screen"]', {
-      timeout: 10000,
-    });
+    const errorScreen = page.getByTestId("error-screen");
+    await expect(errorScreen).toBeVisible({ timeout: 10000 });
 
     // Should show reload button
-    const reloadButton = page.locator('button:has-text("Odśwież"), button:has-text("Spróbuj ponownie")');
+    const reloadButton = page.locator('button:has-text("Odśwież")');
     await expect(reloadButton).toBeVisible();
   });
 

@@ -15,7 +15,7 @@
 </script>
 
 <header class="tv-header theme-outlined">
-  <h1 class="tv-header__stop-name">{displayName}</h1>
+  <h1 class="tv-header__stop-name" data-testid="stop-name">{displayName}</h1>
   <div class="tv-header__clock">
     <Clock />
   </div>

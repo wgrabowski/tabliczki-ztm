@@ -14,10 +14,10 @@ export const test = base.extend<TestFixtures>({
   // eslint-disable-next-line no-empty-pattern
   testUser: async ({}, use) => {
     // Provide test user credentials
-    // These should match users in your test database
+    // These should match the user created in global-setup.ts
     const user: TestUser = {
       email: process.env.TEST_USER_EMAIL || "test@example.com",
-      password: process.env.TEST_USER_PASSWORD || "testpassword123",
+      password: process.env.TEST_USER_PASSWORD || "password123",
     };
     await use(user);
   },

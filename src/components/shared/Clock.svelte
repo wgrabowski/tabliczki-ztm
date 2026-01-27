@@ -28,7 +28,7 @@
   });
 </script>
 
-<time class="clock">{currentTime}</time>
+<time class="clock" data-testid="clock">{currentTime}</time>
 
 <style>
   .clock {

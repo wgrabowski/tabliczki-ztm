@@ -29,7 +29,7 @@
   $: showRetryCount = error.retryCount > 0;
 </script>
 
-<section class="tv-error-screen" role="alert" aria-live="assertive">
+<section class="tv-error-screen" data-testid="error-screen" role="alert" aria-live="assertive">
   <div class="tv-error-screen__content">
     <span class="theme-icon tv-error-screen__icon" aria-hidden="true">error</span>
 
