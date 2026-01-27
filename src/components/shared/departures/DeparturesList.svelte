@@ -10,6 +10,7 @@
    */
   export let departures: ZtmDepartureDTO[];
   export let paginationDisabled = false;
+  export let isTvMode = false;
 
   let currentOffset = 0;
   const itemsPerPage = 6;
@@ -49,7 +50,7 @@
   }
 </script>
 
-<table class="departures-table" data-testid="departures-list">
+<table class="departures-table" class:tv-mode={isTvMode} data-testid="departures-list">
   <colgroup>
     <col style="width: 1%" />
     <col style="width: 100%" />
@@ -99,10 +100,14 @@
 
 <style>
   .departures-table {
-    font-size: clamp(1rem, 4dvmin, 3rem);
+    font-size: clamp(1rem, 2dvmin, 3rem);
     width: 100%;
     border-collapse: collapse;
     height: 100%;
+  }
+
+  .departures-table.tv-mode {
+    font-size: clamp(1rem, 4dvmin, 3rem);
   }
 
   thead th {

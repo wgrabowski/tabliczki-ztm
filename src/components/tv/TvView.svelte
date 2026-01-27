@@ -183,7 +183,7 @@
     {:else if status === "success" && departures.length > 0}
       <div class="tv-view__departures">
 
-        <DeparturesList {departures} paginationDisabled={true} />
+        <DeparturesList {departures} paginationDisabled={true} isTvMode={true} />
   
       </div>
     {/if}

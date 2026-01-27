@@ -53,7 +53,7 @@
 <style>
   .departures-table--skeleton {
     opacity: 0.7;
-    font-size: clamp(1rem, 4dvmin, 3rem);
+    font-size: clamp(1rem, 2dvmin, 3rem);
     width: 100%;
     border-collapse: collapse;
     height: 100%;
