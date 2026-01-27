@@ -18,6 +18,16 @@ const { title = "Tabliczki ZTM", description } = Astro.props;
     <meta name="generator" content={Astro.generator} />
     {description && <meta name="description" content={description} />}
 
+    <!-- Theme initialization - must run before rendering to prevent flash -->
+    <script is:inline>
+      /* eslint-disable */
+      (function () {
+        const savedTheme = localStorage.getItem("theme");
+        const isDark = savedTheme ? savedTheme === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.style.colorScheme = isDark ? "dark" : "light";
+      })();
+    </script>
+
     <!-- Font Loading Optimization -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

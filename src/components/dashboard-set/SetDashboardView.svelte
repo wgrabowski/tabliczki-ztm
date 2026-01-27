@@ -410,9 +410,6 @@
 </div>
 
 <style>
-  .set-dashboard {
-    padding: var(--theme--spacing) 0;
-  }
 
   .retry-section {
     display: flex;

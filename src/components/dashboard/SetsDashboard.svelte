@@ -193,9 +193,6 @@
 
 <style>
   .sets-dashboard {
-    width: 100%;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: calc(var(--theme--spacing) * 4);
+    padding: var(--theme--spacing) 0 0;
   }
 </style>

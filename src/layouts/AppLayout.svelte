@@ -32,10 +32,13 @@
 
 <style>
   .app-layout {
-    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     padding: var(--theme--spacing)
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 96dvw;
   }
 
   .app-header {

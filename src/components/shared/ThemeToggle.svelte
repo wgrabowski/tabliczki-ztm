@@ -4,33 +4,21 @@
 
   /**
    * Theme toggle button for light/dark mode
-   * Uses CSS color-scheme and stores preference in localStorage
+   * Theme is initialized in Layout.astro to prevent flash
+   * This component only handles toggling
    */
 
   let isDark = false;
 
   onMount(() => {
-    // Check saved preference or system preference
-    const savedTheme = localStorage.getItem("theme");
-    
-    if (savedTheme) {
-      isDark = savedTheme === "dark";
-    } else {
-      // Use system preference
-      isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    }
-
-    applyTheme();
+    // Read current theme from DOM (already set by inline script in Layout.astro)
+    isDark = document.documentElement.style.colorScheme === "dark";
   });
 
   function toggleTheme() {
     isDark = !isDark;
-    applyTheme();
-    localStorage.setItem("theme", isDark ? "dark" : "light");
-  }
-
-  function applyTheme() {
     document.documentElement.style.colorScheme = isDark ? "dark" : "light";
+    localStorage.setItem("theme", isDark ? "dark" : "light");
   }
 
   $: icon = isDark ? "light_mode" : "dark_mode";
