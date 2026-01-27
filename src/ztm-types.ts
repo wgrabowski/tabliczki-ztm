@@ -138,19 +138,13 @@ export type ZtmSetStopDeparturesResultDTO =
       error: ZtmSetStopDeparturesErrorDTO;
     };
 
-export interface ZtmSetStopDTO {
-  stop_id: number;
-  stop: ZtmStopDTO | null;
-  position: number;
-  item_id: string;
-}
-
-export interface GetZtmSetStopsResponse {
-  set_id: string;
-  stops: ZtmSetStopDTO[];
-  fetched_at: string;
-  stops_last_update: string;
-}
+/**
+ * API response for GET /api/ztm/sets/{setId}/stops
+ *
+ * Returns a dictionary of stops keyed by stopId (as string).
+ * Values can be null if stop metadata is not available.
+ */
+export type GetZtmSetStopsResponse = Record<string, ZtmStopDTO | null>;
 
 /**
  * API response for GET /api/ztm/sets/{setId}/departures

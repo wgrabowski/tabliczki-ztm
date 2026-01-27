@@ -6,7 +6,7 @@
     SetDTO,
     CreateSetItemResponse,
   } from "@types";
-  import type { ZtmSetStopDTO, GetZtmSetDeparturesResponse } from "@ztm-types";
+  import type { GetZtmSetDeparturesResponse } from "@ztm-types";
   import { toastsStore } from "@stores/toasts.store";
   import { setGlobalLoading } from "@stores/global-loading.store";
   import { stopsStore } from "@stores/stops.store";
@@ -325,13 +325,12 @@
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const data: import("../ztm-types").GetZtmSetStopsResponse = await response.json();
+      const data: import("@ztm-types").GetZtmSetStopsResponse = await response.json();
 
-      // Convert stops array to dictionary keyed by stop_id
-      state.stopsData = data.stops.reduce((acc, stop) => {
-        acc[stop.stop_id] = stop;
-        return acc;
-      }, {} as Record<number, ZtmSetStopDTO>);
+      // Convert string keys to numbers for compatibility with item.stop_id
+      state.stopsData = Object.fromEntries(
+        Object.entries(data).map(([key, value]) => [Number(key), value as import("@ztm-types").ZtmStopDTO | null])
+      ) as Record<number, import("@ztm-types").ZtmStopDTO | null>;
 
     } catch (error) {
       console.error("Failed to load stops:", error);
@@ -375,12 +374,12 @@
         <StopCard
           stopId={item.stop_id}
           itemId={item.id}
-          stop={stopData?.stop || null}
+          stop={stopData || null}
           position={item.position}
           departures={departures}
           error={error}
           hasGlobalError={state.isCycleStopped}
-          onDelete={(itemId) => handleDeleteStop(itemId, stopData?.stop?.stopShortname?.toString() || `${item.stop_id}`)}
+          onDelete={(itemId) => handleDeleteStop(itemId, stopData?.stopShortname?.toString() || `${item.stop_id}`)}
           onOpenTv={handleOpenTv}
         />
       {/each}

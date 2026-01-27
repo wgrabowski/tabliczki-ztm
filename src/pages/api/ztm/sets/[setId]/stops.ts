@@ -6,7 +6,7 @@ import { getAllSetItems, verifySetOwnership } from "@services/set-items.service.
 import { getStops, ZtmServiceError } from "@services/ztm.service.ts";
 import { deleteSetParamsSchema } from "@lib/validation/sets.validation.ts";
 import type { ErrorResponse } from "@types";
-import type { GetZtmSetStopsResponse, ZtmSetStopDTO } from "@ztm-types";
+import type { GetZtmSetStopsResponse } from "@ztm-types";
 
 export const prerender = false;
 
@@ -44,19 +44,11 @@ export const GET: APIRoute = async ({ params, locals }) => {
     const stopsData = await getStops({ cacheTtlMs: 6 * 60 * 60 * 1000, timeoutMs: 10_000 });
     const stopsById = new Map(stopsData.stops.map((s) => [s.stopId, s]));
 
-    const stops: ZtmSetStopDTO[] = items.map((item) => ({
-      stop_id: item.stop_id,
-      stop: stopsById.get(item.stop_id) ?? null,
-      position: item.position,
-      item_id: item.id,
-    }));
-
-    const response: GetZtmSetStopsResponse = {
-      set_id: setId,
-      stops,
-      fetched_at: new Date().toISOString(),
-      stops_last_update: stopsData.lastUpdate,
-    };
+    // Build dictionary of stops keyed by stopId
+    const response: GetZtmSetStopsResponse = items.reduce((acc, item) => {
+      acc[item.stop_id.toString()] = stopsById.get(item.stop_id) ?? null;
+      return acc;
+    }, {} as GetZtmSetStopsResponse);
 
     return new Response(JSON.stringify(response), {
       status: 200,

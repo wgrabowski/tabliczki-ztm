@@ -286,7 +286,7 @@ export interface SetDashboardState {
   /** Departures data (null until first load) */
   departuresData: import("./ztm-types").GetZtmSetDeparturesResponse | null;
   /** Stop metadata - dictionary keyed by stop_id */
-  stopsData: Record<number, import("./ztm-types").ZtmSetStopDTO>;
+  stopsData: Record<number, import("./ztm-types").ZtmStopDTO | null>;
   /** Consecutive error count (0-3) */
   errorCount: number;
   /** True during fetch */
