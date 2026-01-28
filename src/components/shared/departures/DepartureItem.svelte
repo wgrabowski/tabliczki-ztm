@@ -43,7 +43,7 @@
 
   <!-- Direction (Headsign) -->
   <td class="departure-headsign">
-    {departure.headsign || "—"}
+    <span class="departure-headsign-text">{departure.headsign || "—"}</span>
   </td>
   <td>
 
@@ -82,7 +82,21 @@
   .departure-headsign {
     overflow: hidden;
     text-overflow: ellipsis;
+
+    position: relative;
+  }
+
+  .departure-headsign-text {
+    display: block;
+    width: 100%;
+    text-overflow: ellipsis;
     white-space: nowrap;
+    overflow: hidden;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 0;
+    z-index: 1;
   }
 
   .departure-time {

@@ -50,6 +50,12 @@
     align-items: center;
     padding: var(--theme--spacing) calc(var(--theme--spacing) * 2);
     border-bottom: 1px solid var(--theme--accent-color-dim);
+
+    @media screen and (max-width: 370px) {
+      flex-flow:row wrap-reverse;
+      justify-content: center;
+      width: 100%;
+    }
   }
 
   .app-header__left,
