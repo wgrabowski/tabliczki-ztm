@@ -20,11 +20,33 @@ if (!stopId || isNaN(stopIdNum) || stopIdNum <= 0) {
   return Astro.redirect("/404");
 }
 
+// Fetch stop name for page title
+let stopName = `Przystanek ${stopIdNum}`;
+let stopCode = "";
+
+try {
+  const origin = Astro.url.origin;
+  const stopsResponse = await fetch(`${origin}/api/ztm/stops?stopIds=${stopIdNum}`);
+
+  if (stopsResponse.ok) {
+    const stopsData = await stopsResponse.json();
+    if (stopsData.stops && stopsData.stops.length > 0) {
+      const stop = stopsData.stops[0];
+      stopName = stop.stopName || stopName;
+      stopCode = stop.stopCode || "";
+    }
+  }
+} catch (error) {
+  // Fallback to stopId if fetch fails
+  console.error("Failed to fetch stop name:", error);
+}
+
 // Set page metadata
-const title = `Tablica przystanku ${stopIdNum} | Tabliczki ZTM`;
-const description = `Publiczna tablica odjazdów dla przystanku ${stopIdNum}`;
+const stopDisplay = stopCode ? `${stopName} (${stopCode})` : stopName;
+const title = `${stopDisplay} | Tabliczki ZTM`;
+const description = `Publiczna tablica odjazdów dla przystanku ${stopDisplay}`;
 ---
 
 <Layout title={title} description={description}>
-  <TvView stopId={stopIdNum} client:load />
+  <TvView stopId={stopIdNum} initialStopName={stopDisplay} client:load />
 </Layout>

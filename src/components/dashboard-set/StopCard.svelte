@@ -26,7 +26,7 @@
 
   // Card title: stop name + code
   $: cardTitle = stop 
-    ? `${stop.stopName || stop.stopId} ${stop.stopCode ? `(${stop.stopCode})` : ''}`
+    ? `${stop.stopName || `Przystanek ${stopId}`} ${stop.stopCode ? `(${stop.stopCode})` : ''}`
     : `Przystanek ${stopId}`;
 
   // Ticker message (placeholder - will be populated when API supports it)

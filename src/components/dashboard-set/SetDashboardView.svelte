@@ -253,11 +253,12 @@
     }
   }
 
-  function handleDeleteStop(itemId: string, stopName: string) {
+  function handleDeleteStop(itemId: string, stopName: string, stopCode: string) {
+    const stopDisplay = stopCode ? `${stopName} (${stopCode})` : stopName;
     state.confirmDialog = {
       isOpen: true,
       title: "Usunąć przystanek?",
-      message: `Czy na pewno chcesz usunąć przystanek ${stopName} z zestawu?`,
+      message: `Czy na pewno chcesz usunąć przystanek ${stopDisplay} z zestawu?`,
       onConfirm: () => executeDeleteStop(itemId),
     };
   }
@@ -379,7 +380,11 @@
           departures={departures}
           error={error}
           hasGlobalError={state.isCycleStopped}
-          onDelete={(itemId) => handleDeleteStop(itemId, stopData?.stopShortname?.toString() || `${item.stop_id}`)}
+          onDelete={(itemId) => handleDeleteStop(
+            itemId, 
+            stopData?.stopName || `Przystanek ${item.stop_id}`,
+            stopData?.stopCode || ''
+          )}
           onOpenTv={handleOpenTv}
         />
       {/each}
