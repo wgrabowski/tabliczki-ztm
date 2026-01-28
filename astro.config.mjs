@@ -16,6 +16,9 @@ export default defineConfig({
   output: "server",
   integrations: [sitemap(), svelte()],
   server: { port: 3000 },
+  build: {
+    inlineStylesheets: "auto",
+  },
   vite: {
     plugins: [],
     resolve: {
@@ -32,5 +35,7 @@ export default defineConfig({
   },
   adapter: vercel({
     webAnalytics: { enabled: true },
+    isr: false, // Disable Incremental Static Regeneration to prevent stale cache
+    edgeMiddleware: false,
   }),
 });

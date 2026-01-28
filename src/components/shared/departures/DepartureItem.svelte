@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import type { ZtmDepartureDTO } from "@ztm-types";
 
   /**
@@ -8,11 +9,17 @@
    * - Time (relative/absolute based on status)
    * - Accessibility icons (wheelchair, bike) - TODO when API supports it
    */
-  export let departure: ZtmDepartureDTO;
+  interface Props {
+    departure: ZtmDepartureDTO;
+  }
+
+  const { departure }: Props = $props();
+
+  let mounted = $state(false);
+  let currentTime = $state(new Date());
 
   // Calculate relative time from estimatedTime
-  function getRelativeTime(estimatedTime: string): string {
-    const now = new Date();
+  function getRelativeTime(estimatedTime: string, now: Date): string {
     const estimated = new Date(estimatedTime);
     const diffMs = estimated.getTime() - now.getTime();
     const diffMinutes = Math.floor(diffMs / 60000);
@@ -29,10 +36,28 @@
     }
   }
 
-  $: timeDisplay = getRelativeTime(departure.estimatedTime);
-  $: isRealtime = departure.status === "REALTIME";
-  $: hasDelay = departure.delayInSeconds && departure.delayInSeconds > 0;
-  $: delayMinutes = hasDelay ? Math.floor(departure.delayInSeconds! / 60) : 0;
+  // Update time only on client side
+  onMount(() => {
+    mounted = true;
+    currentTime = new Date();
+    
+    const interval = setInterval(() => {
+      currentTime = new Date();
+    }, 30000); // Update every 30 seconds
+
+    return () => clearInterval(interval);
+  });
+
+  const timeDisplay = $derived(
+    mounted ? getRelativeTime(departure.estimatedTime, currentTime) : "--"
+  );
+  const isRealtime = $derived(departure.status === "REALTIME");
+  const hasDelay = $derived(
+    departure.delayInSeconds && departure.delayInSeconds > 0
+  );
+  const delayMinutes = $derived(
+    hasDelay ? Math.floor(departure.delayInSeconds! / 60) : 0
+  );
 </script>
 
 <tr class="departure-item">
