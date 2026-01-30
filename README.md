@@ -96,10 +96,12 @@ From `package.json`:
 - **`npm run test:unit:watch`**: run unit tests in watch mode
 - **`npm run test:unit:ui`**: run unit tests with Vitest UI
 - **`npm run test:unit:coverage`**: run unit tests with coverage report
-- **`npm run test:e2e`**: run E2E tests with Playwright
+- **`npm run test:e2e`**: run E2E tests with Playwright (excludes screenshot tests)
 - **`npm run test:e2e:ui`**: run E2E tests with Playwright UI
 - **`npm run test:e2e:headed`**: run E2E tests in headed mode (see browser)
 - **`npm run test:e2e:debug`**: debug E2E tests with Playwright Inspector
+- **`npm run screenshots`**: generate screenshots for documentation (headed mode)
+- **`npm run screenshots:ci`**: generate screenshots for documentation (headless mode)
 
 ## 6. Testing
 
@@ -108,6 +110,7 @@ The project includes comprehensive test coverage:
 - **Unit tests**: Vitest for validation, error mapping, and business logic
 - **Integration tests**: API endpoint tests with mocked database
 - **E2E tests**: Playwright for full user flow testing
+- **Screenshot tests**: Automated screenshot generation for documentation
 
 ### Quick Start
 
@@ -118,7 +121,7 @@ npm run test
 # Run unit tests only
 npm run test:unit
 
-# Run E2E tests only
+# Run E2E tests only (excludes screenshots)
 npm run test:e2e
 
 # Watch mode for development
@@ -128,10 +131,30 @@ npm run test:unit:watch
 npm run test:unit:coverage
 ```
 
+### Screenshot Generation
+
+Automated tool for capturing app screenshots in multiple variants:
+
+```bash
+# Generate screenshots (see browser)
+npm run screenshots
+
+# Generate screenshots (headless, for CI)
+npm run screenshots:ci
+```
+
+**Features:**
+
+- Captures all business flows (login, dashboard, sets, stops, TV view)
+- Generates 4 variants: desktop/mobile × light/dark theme
+- Organized output: `screenshots/{viewport}/{theme}/{screen-name}.png`
+- **Note:** Screenshot tests run separately from regular E2E tests to avoid conflicts
+
 ### Documentation
 
 - **Test directory structure**: [src/tests/README.md](./src/tests/README.md)
 - **Test plan**: [.ai/test-plan.md](./.ai/test-plan.md)
+- **E2E setup guide**: [E2E_SETUP.md](./E2E_SETUP.md)
 
 ### Configuration
 

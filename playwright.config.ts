@@ -23,9 +23,10 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: 1, // One worker for one test user
+  maxFailures: 1, // Stop after first failure
 
   // Timeouts
-  timeout: 30_000, // 30s per test
+  timeout: 120_000, // 120s per test (increased for screenshot tests)
   expect: {
     timeout: 5_000, // 5s for assertions
   },

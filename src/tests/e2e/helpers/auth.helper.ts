@@ -14,11 +14,11 @@ export async function login(page: Page): Promise<void> {
   await page.goto("/auth/login");
 
   // Fill login form
-  await page.fill('input[name="email"]', email);
-  await page.fill('input[name="password"]', password);
+  await page.fill('[data-testid="login-email-input"]', email);
+  await page.fill('[data-testid="login-password-input"]', password);
 
   // Submit form
-  await page.click('button[type="submit"]');
+  await page.click('[data-testid="login-submit-button"]');
 
   // Wait for redirect to dashboard
   await page.waitForURL("/dashboard", { timeout: 10_000 });
@@ -29,7 +29,7 @@ export async function login(page: Page): Promise<void> {
  */
 export async function logout(page: Page): Promise<void> {
   await page.goto("/account");
-  await page.click('button:has-text("Wyloguj")');
+  await page.click('[data-testid="logout-button"]');
   await page.waitForURL("/", { timeout: 5_000 });
 }
 

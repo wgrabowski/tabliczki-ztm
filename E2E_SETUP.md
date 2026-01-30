@@ -28,7 +28,7 @@ npx playwright install chromium
 ### 3. Run Tests
 
 ```bash
-# Run all E2E tests
+# Run all E2E tests (excludes screenshot tests)
 npm run test:e2e
 
 # Interactive UI mode
@@ -39,7 +39,13 @@ npm run test:e2e:headed
 
 # Debug mode
 npm run test:e2e:debug
+
+# Generate screenshots (separate from regular tests)
+npm run screenshots        # headed mode (see browser)
+npm run screenshots:ci     # headless mode (CI)
 ```
+
+**Note:** Screenshot tests are isolated and won't run with regular E2E tests to avoid conflicts and save time.
 
 ## Test User Setup
 

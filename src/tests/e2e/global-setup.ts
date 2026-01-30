@@ -4,8 +4,6 @@
  */
 /* eslint-disable no-console */
 export default async function globalSetup() {
-  console.log("🧪 E2E Test Environment Setup");
-
   // Validate required environment variables
   const requiredEnvVars = [
     "TEST_SUPABASE_URL",
@@ -19,15 +17,10 @@ export default async function globalSetup() {
 
   if (missing.length > 0) {
     throw new Error(
-      `❌ Missing required environment variables: ${missing.join(", ")}\n` +
+      `Error: Missing required environment variables: ${missing.join(", ")}\n` +
         `   Please create .env.test file based on .env.test.example`
     );
   }
-
-  console.log(`✓ Environment variables validated`);
-  console.log(`✓ Test user: ${process.env.TEST_USER_EMAIL}`);
-  console.log(`✓ Supabase URL: ${process.env.TEST_SUPABASE_URL}`);
-  console.log(`✓ Base URL: ${process.env.BASE_URL || "http://localhost:4321"}`);
 
   // Verify test user can authenticate
   const baseUrl = process.env.BASE_URL || "http://localhost:4321";
@@ -53,14 +46,10 @@ export default async function globalSetup() {
           `   Please verify credentials in .env.test or create the user manually in Supabase`
       );
     }
-
-    console.log("✅ Test user authentication verified");
   } catch (error) {
-    console.error("❌ Global setup failed:", error);
+    console.error("Error: Global setup failed:", error);
     throw error;
   }
-
-  console.log("✅ E2E test environment ready\n");
 }
 
 /**
@@ -74,7 +63,6 @@ async function waitForServer(baseUrl: string, timeoutMs = 30_000): Promise<void>
     try {
       const response = await fetch(baseUrl, { method: "HEAD" });
       if (response.ok || response.status === 404) {
-        console.log("✓ Server is ready");
         return;
       }
     } catch (error) {

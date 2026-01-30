@@ -16,10 +16,12 @@
     "test:unit:watch": "vitest",
     "test:unit:ui": "vitest --ui",
     "test:unit:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:headed": "playwright test --headed",
-    "test:e2e:debug": "playwright test --debug"
+    "test:e2e": "playwright test --grep-invert @screenshots",
+    "test:e2e:ui": "playwright test --ui --grep-invert @screenshots",
+    "test:e2e:headed": "playwright test --headed --grep-invert @screenshots",
+    "test:e2e:debug": "playwright test --debug --grep-invert @screenshots",
+    "screenshots": "playwright test --grep @screenshots --headed",
+    "screenshots:ci": "playwright test --grep @screenshots"
   },
   "dependencies": {
     "@astrojs/node": "^9.4.3",

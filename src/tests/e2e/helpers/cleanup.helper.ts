@@ -38,7 +38,7 @@ export async function cleanupUserData(userEmail: string): Promise<void> {
     const user = userData?.users.find((u: User) => u.email === userEmail);
 
     if (!user) {
-      console.log(`ℹ️  User ${userEmail} not found - skipping cleanup`);
+      console.log(`ℹ User ${userEmail} not found - skipping cleanup`);
       return;
     }
 
@@ -48,10 +48,8 @@ export async function cleanupUserData(userEmail: string): Promise<void> {
     if (deleteError) {
       throw new Error(`Failed to delete sets: ${deleteError.message}`);
     }
-
-    console.log(`✓ Cleaned up data for user: ${userEmail}`);
   } catch (error) {
-    console.error(`❌ Cleanup failed for ${userEmail}:`, error);
+    console.error(`Error: Cleanup failed for ${userEmail}:`, error);
     throw error;
   }
 }
