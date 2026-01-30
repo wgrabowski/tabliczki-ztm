@@ -44,7 +44,7 @@
         id: stop.stopId,
         label: `${(stop.stopShortname?.toString() || stop.stopName || stop.stopDesc)} (${stop.stopCode}) `,
         secondaryLabel: `${stop.type} ${stop.stopDesc}`,
-        searchableText: `${stop.stopShortname || ""} ${stop.stopCode || ""} ${stop.stopName || ""} ${stop.stopDesc || "" }`,
+        searchableText: `${stop.stopName || ""} ${stop.stopCode || ""} ${stop.stopName || ""} ${stop.stopDesc || "" }`,
       }));
     } else {
       autocompleteItems = [];
@@ -111,7 +111,7 @@
   }
 </script>
 
-<Modal {isOpen} title="Dodaj przystanek" onClose={onClose}>
+<Modal {isOpen} title="Dodaj przystanek" onClose={onClose} testid="add-stop-dialog">
   {#if stopsState.status === "loading"}
     <!-- Loading State: Skeleton -->
     <div class="loading-state">
@@ -146,6 +146,7 @@
       maxResults={6}
       debounceMs={300}
       onSelect={handleStopSelect}
+      testid="add-stop-search"
     />
 
     {#if selectedStopId !== null}
@@ -160,13 +161,13 @@
 
   <div slot="footer" class="footer-actions">
     {#if stopsState.status === "error"}
-      <Button variant="primary" onClick={handleRetry}>
+      <Button variant="primary" onClick={handleRetry} testid="add-stop-retry">
         <span class="button-content">
           <span class="theme-icon">refresh</span>
           <span>Spróbuj ponownie</span>
         </span>
       </Button>
-      <Button variant="secondary" onClick={onClose}>
+      <Button variant="secondary" onClick={onClose} testid="add-stop-close">
         Zamknij
       </Button>
     {:else if stopsState.status === "ready"}
@@ -174,10 +175,11 @@
         variant="primary" 
         onClick={handleSubmit}
         disabled={selectedStopId === null}
+        testid="add-stop-submit"
       >
         Dodaj
       </Button>
-      <Button variant="secondary" onClick={onClose}>
+      <Button variant="secondary" onClick={onClose} testid="add-stop-cancel">
         Anuluj
       </Button>
     {/if}

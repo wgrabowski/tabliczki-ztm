@@ -7,6 +7,7 @@
   export let disabled: boolean = false;
   export let loading: boolean = false;
   export let onClick: (() => void) | undefined = undefined;
+  export let testid: string | undefined = undefined;
 
   function handleClick() {
     if (!disabled && !loading && onClick) {
@@ -17,6 +18,7 @@
 
 <button
   {type}
+  data-testid={testid}
   class="button theme-noradius theme-focusable theme-clickable"
   class:theme-filled={variant === "primary"}
   class:theme-outlined={variant === "secondary"}

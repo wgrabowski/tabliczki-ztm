@@ -6,6 +6,7 @@
   export let isOpen: boolean = false;
   export let title: string | undefined = undefined;
   export let onClose: (() => void) | undefined = undefined;
+  export let testid: string | undefined = undefined;
 
   let dialogElement: HTMLDialogElement;
 
@@ -28,7 +29,7 @@
   }
 </script>
 
-<dialog bind:this={dialogElement} class="theme-outlined theme-noradius" on:cancel={handleCancel}>
+<dialog bind:this={dialogElement} class="theme-outlined theme-noradius" data-testid={testid} on:cancel={handleCancel}>
     {#if title}
       <header class="theme-filled">
         <h2 class="modal__title">{title}</h2>

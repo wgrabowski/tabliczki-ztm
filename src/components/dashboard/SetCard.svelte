@@ -63,7 +63,7 @@
   }
 </script>
 
-<Card title={isEditing ? editedName : set.name}>
+<Card title={isEditing ? editedName : set.name} testid="set-card" setname={set.name}>
   <div slot="actions">
     <IconButton
       icon="visibility"
@@ -71,6 +71,7 @@
       variant="default"
       size="small"
       onClick={() => onNavigate(set.id)}
+      testid="set-view-button"
     />
   </div>
   <div slot="deleteAction">
@@ -80,6 +81,7 @@
       variant="default"
       size="small"
       onClick={() => onDelete(set.id)}
+      testid="set-delete-button"
     />
   </div>
 
@@ -90,6 +92,7 @@
           class="set-card__name-button theme-clickable"
           on:click={startEditing}
           aria-label="Edytuj nazwę zestawu"
+          data-testid="set-edit-button"
         >
           <span class="theme-icon">edit</span>
           Edytuj nazwę
@@ -100,7 +103,7 @@
         </button>
       </div>
     {:else}
-      <form class="set-card__edit-form" on:submit={handleSubmit}>
+      <form class="set-card__edit-form" on:submit={handleSubmit} data-testid="set-edit-form">
         <TextInput
           bind:value={editedName}
           maxlength={20}
@@ -108,6 +111,7 @@
           required
           autofocus
           disabled={isLoading}
+          testid="set-name-input"
         />
         <div class="set-card__edit-actions">
           <IconButton
@@ -118,6 +122,7 @@
             size="small"
             disabled={isLoading}
             width="40px"
+            testid="set-save-button"
           />
           <IconButton
             icon="close"
@@ -128,6 +133,7 @@
             onClick={cancelEditing}
             disabled={isLoading}
             width="40px"
+            testid="set-cancel-button"
           />
         </div>
         {#if isLoading}

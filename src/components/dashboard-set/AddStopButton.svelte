@@ -12,6 +12,7 @@
   {disabled}
   on:click={onClick}
   aria-label="Dodaj nowy przystanek"
+  data-testid="add-stop-button"
 >
   <span class="theme-icon add-stop-button__icon">add</span>
   <span class="add-stop-button__text">Dodaj przystanek</span>

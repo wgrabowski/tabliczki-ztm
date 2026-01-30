@@ -7,6 +7,7 @@
   export let isOpen: boolean = false;
   export let title: string | undefined = undefined;
   export let onClose: (() => void) | undefined = undefined;
+  export let testid: string | undefined = undefined;
 
   let dialogElement: HTMLDialogElement;
 
@@ -42,7 +43,7 @@
   });
 </script>
 
-<dialog bind:this={dialogElement} class="dialog theme-outlined theme-noradius">
+<dialog bind:this={dialogElement} class="dialog theme-outlined theme-noradius" data-testid={testid}>
   <div class="dialog__content">
     {#if title}
       <header class="dialog__header theme-filled">

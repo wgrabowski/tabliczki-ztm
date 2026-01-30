@@ -46,12 +46,13 @@
   {disabled}
   on:click={openDialog}
   aria-label="Dodaj nowy zestaw"
+  data-testid="create-set-button"
 >
   <span class="theme-icon create-set-button__icon">add</span>
   <span class="create-set-button__text">Dodaj zestaw</span>
 </button>
 
-<Prompt isOpen={isDialogOpen} title="Nowy zestaw" onClose={closeDialog}>
+<Prompt isOpen={isDialogOpen} title="Nowy zestaw" onClose={closeDialog} testid="create-set-dialog">
   <form class="create-set-form" on:submit={handleSubmit} method="dialog">
     <TextInput
       bind:value={newSetName}
@@ -61,12 +62,13 @@
       required
       autofocus
       name="name"
+      testid="create-set-name-input"
     />
     <div class="create-set-form__actions">
-      <Button type="submit" variant="primary" loading={isLoading} disabled={isLoading}>
+      <Button type="submit" variant="primary" loading={isLoading} disabled={isLoading} testid="create-set-submit">
         Zapisz
       </Button>
-      <Button type="button" variant="secondary" onClick={closeDialog} disabled={isLoading}>
+      <Button type="button" variant="secondary" onClick={closeDialog} disabled={isLoading} testid="create-set-cancel">
         Anuluj
       </Button>
     </div>

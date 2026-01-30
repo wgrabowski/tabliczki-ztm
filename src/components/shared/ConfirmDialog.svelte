@@ -22,12 +22,12 @@
   }
 </script>
 
-<Prompt {isOpen} {title} onClose={handleCancel}>
+<Prompt {isOpen} {title} onClose={handleCancel} testid="confirm-dialog">
   <div class="confirm-dialog">
-    <p class="confirm-dialog__message">{message}</p>
+    <p class="confirm-dialog__message" data-testid="confirm-message">{message}</p>
     <div class="confirm-dialog__actions">
-      <Button variant="primary" onClick={handleConfirm}>{confirmText}</Button>
-      <Button variant="secondary" onClick={handleCancel}>{cancelText}</Button>
+      <Button variant="primary" onClick={handleConfirm} testid="confirm-button">{confirmText}</Button>
+      <Button variant="secondary" onClick={handleCancel} testid="cancel-button">{cancelText}</Button>
     </div>
   </div>
 </Prompt>

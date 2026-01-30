@@ -87,7 +87,7 @@
   }
 </script>
 
-<form class="login-form" on:submit={handleSubmit} novalidate>
+<form class="login-form" on:submit={handleSubmit} novalidate data-testid="login-form">
   <div class="form-group">
     <label for="email" class="form-label">E-mail</label>
     <TextInput
@@ -98,6 +98,7 @@
       required
       autocomplete="email"
       disabled={isSubmitting}
+      testid="login-email-input"
     />
   </div>
 
@@ -111,6 +112,7 @@
       required
       autocomplete="current-password"
       disabled={isSubmitting}
+      testid="login-password-input"
     />
   </div>
 
@@ -122,7 +124,7 @@
   {/if}
 
   <div class="form-actions">
-    <Button type="submit" variant="primary" loading={isSubmitting}>
+    <Button type="submit" variant="primary" loading={isSubmitting} testid="login-submit-button">
       Zaloguj się
     </Button>
   </div>

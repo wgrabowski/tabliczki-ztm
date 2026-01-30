@@ -26,7 +26,7 @@
 
   // Card title: stop name + code
   $: cardTitle = stop 
-    ? `${stop.stopName || `Przystanek ${stopId}`} ${stop.stopCode ? `(${stop.stopCode})` : ''}`
+    ? `${stop.stopName || stop.stopId} ${stop.stopCode ? `(${stop.stopCode})` : ''}`
     : `Przystanek ${stopId}`;
 
   // Ticker message (placeholder - will be populated when API supports it)
@@ -37,7 +37,7 @@
   $: hasError = error !== null;
 </script>
 
-<Card title={cardTitle} noPadding>
+<Card title={cardTitle} noPadding testid="stop-card" stopid={stopId}>
   <!-- Header Actions Slot -->
   <div slot="actions">
     <IconButton 
@@ -45,6 +45,7 @@
       icon="tv" 
       title="Otwórz w trybie TV" 
       onClick={() => onOpenTv(stopId)}
+      testid="stop-tv-button"
     />
   </div>
 
@@ -55,6 +56,7 @@
       icon="delete" 
       title="Usuń przystanek" 
       onClick={() => onDelete(itemId)}
+      testid="stop-delete-button"
     />
   </div>
 

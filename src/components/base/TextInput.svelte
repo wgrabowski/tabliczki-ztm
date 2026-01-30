@@ -12,6 +12,7 @@
   export let disabled: boolean = false;
   export let autofocus: boolean = false;
   export let autocomplete: string | undefined = undefined;
+  export let testid: string | undefined = undefined;
 </script>
 
 <!-- svelte-ignore a11y_autofocus -->
@@ -26,6 +27,7 @@
   {disabled}
   autofocus={autofocus}
   autocomplete={autocomplete}
+  data-testid={testid}
   class="text-input theme-outlined theme-noradius theme-focusable"
 />
 

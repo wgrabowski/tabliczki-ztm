@@ -29,6 +29,7 @@
   export let clearOnSelect: boolean = false;
   export let onSelect: (item: AutocompleteItem) => void;
   export let value: string = ""; // Bind query value externally
+  export let testid: string | undefined = undefined;
 
   // Use value as query directly
   $: query = value;
@@ -194,6 +195,7 @@
   <input
     bind:this={inputElement}
     bind:value={value}
+    data-testid={testid}
     type="search"
     role="combobox"
     aria-expanded={isOpen}
@@ -222,6 +224,7 @@
           aria-selected={index === highlightedIndex}
           class="autocomplete-option"
           class:highlighted={index === highlightedIndex}
+          data-testid="autocomplete-option"
           on:mousedown|preventDefault={() => selectItem(item)}
           on:mouseenter={() => handleOptionMouseEnter(index)}
         >

@@ -92,6 +92,7 @@
         variant="secondary"
         onClick={handleLogout}
         loading={isLoggingOut}
+        testid="logout-button"
       >
         <span class="button-content">
           <span class="theme-icon">logout</span>

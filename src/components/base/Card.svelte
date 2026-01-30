@@ -4,9 +4,12 @@
    */
   export let title: string;
   export let noPadding: boolean = false;
+  export let testid: string | undefined = undefined;
+  export let stopid: number | undefined = undefined;
+  export let setname: string | undefined = undefined;
 </script>
 
-<article class="card theme-outlined theme-noradius">
+<article class="card theme-outlined theme-noradius" data-testid={testid} data-stop-id={stopid} data-set-name={setname}>
   <header class="card__header theme-filled">
     <div class="card__header-actions">
       <slot name="actions" />
