@@ -1,3 +1,5 @@
+[![CI](https://github.com/wgrabowski/tabliczki-ztm/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/wgrabowski/tabliczki-ztm/actions/workflows/ci.yml)
+
 ## 1. Project name
 
 **Tabliczki ZTM (MVP)** — live stop-board dashboards for ZTM Gdańsk
