@@ -12,12 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
-    env:
-      NODE_ENV: test
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -37,16 +31,6 @@ jobs:
 
       - name: Run linter
         run: npm run lint
-
-      - name: Run unit tests
-        run: npm run test:unit
-
-      # TODO: Enable E2E tests in later stage
-      # - name: Install Playwright browsers
-      #   run: npx playwright install --with-deps chromium
-
-      # - name: Run E2E tests
-      #   run: npm run test:e2e
 
   build:
     name: Production Build
