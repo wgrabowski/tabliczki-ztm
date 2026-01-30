@@ -32,13 +32,14 @@ jobs:
       - name: Run linter
         run: npm run lint
 
-  build:
-    name: Build Check
+  unit-test:
+    name: Unit Tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: lint
 
     env:
+      NODE_ENV: test
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -59,6 +60,19 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Generate coverage report
+        run: npm run test:unit:coverage
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v6
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30
 
       - name: Build production
         run: npm run build

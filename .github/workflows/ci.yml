@@ -32,6 +32,19 @@ jobs:
       - name: Run linter
         run: npm run lint
 
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Generate coverage report
+        run: npm run test:unit:coverage
+
+      - name: Upload coverage to artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 7
+
   build:
     name: Production Build
     runs-on: ubuntu-latest
