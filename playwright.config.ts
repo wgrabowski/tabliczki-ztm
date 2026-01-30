@@ -65,16 +65,35 @@ export default defineConfig({
   ],
 
   // Dev server (automatically starts for local testing)
-  webServer: {
-    command: "npm run dev",
-    url: "http://localhost:4321",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000, // 2 min for server startup
-    stdout: "ignore",
-    stderr: "pipe",
-  },
+  webServer: process.env.CI
+    ? {
+        command: "npm run dev",
+        url: "http://localhost:4321",
+        reuseExistingServer: false,
+        timeout: 120_000,
+        stdout: "ignore",
+        stderr: "pipe",
+        env: {
+          SUPABASE_URL: process.env.TEST_SUPABASE_URL || "",
+          SUPABASE_KEY: process.env.TEST_SUPABASE_KEY || "",
+          SUPABASE_SERVICE_ROLE_KEY: process.env.TEST_SUPABASE_SERVICE_ROLE_KEY || "",
+        },
+      }
+    : {
+        command: "npm run dev:test",
+        url: "http://localhost:4321",
+        reuseExistingServer: false,
+        timeout: 120_000,
+        stdout: "ignore",
+        stderr: "pipe",
+        env: {
+          SUPABASE_URL: process.env.TEST_SUPABASE_URL || "",
+          SUPABASE_KEY: process.env.TEST_SUPABASE_KEY || "",
+          SUPABASE_SERVICE_ROLE_KEY: process.env.TEST_SUPABASE_SERVICE_ROLE_KEY || "",
+        },
+      },
 
   // Global setup and teardown
-  globalSetup: require.resolve("./src/tests/e2e/global-setup.ts"),
-  globalTeardown: require.resolve("./src/tests/e2e/global-teardown.ts"),
+  globalSetup: "./src/tests/e2e/global-setup.ts",
+  globalTeardown: "./src/tests/e2e/global-teardown.ts",
 });

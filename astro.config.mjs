@@ -15,7 +15,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig({
   output: "server",
   integrations: [sitemap(), svelte()],
-  server: { port: 3000 },
+  server: { port: 4321 },
   build: {
     inlineStylesheets: "auto",
   },

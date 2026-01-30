@@ -84,10 +84,10 @@ jobs:
     needs: lint
 
     env:
-      # Application environment
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      # Application environment (uses test Supabase for E2E)
+      SUPABASE_URL: ${{ secrets.TEST_SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.TEST_SUPABASE_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.TEST_SUPABASE_SERVICE_ROLE_KEY }}
       # Test environment
       TEST_SUPABASE_URL: ${{ secrets.TEST_SUPABASE_URL }}
       TEST_SUPABASE_KEY: ${{ secrets.TEST_SUPABASE_KEY }}
@@ -119,6 +119,10 @@ jobs:
 
       - name: Run E2E tests
         run: npm run test:e2e
+        env:
+          SUPABASE_URL: ${{ secrets.TEST_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.TEST_SUPABASE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.TEST_SUPABASE_SERVICE_ROLE_KEY }}
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v6
