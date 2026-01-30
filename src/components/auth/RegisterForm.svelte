@@ -88,10 +88,8 @@
       const data: { requires_email_confirmation?: boolean } = await response.json();
 
       if (data.requires_email_confirmation) {
-        const message =
-          "Konto utworzone, ale wymaga potwierdzenia e-mail (w Supabase włącz Auto-confirm dla MVP).";
-        toastsStore.addToast("success", message);
-        window.location.href = `/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`;
+        // Redirect to login page with verify-email mode
+        window.location.href = `/auth/login?mode=verify-email`;
         return;
       }
 

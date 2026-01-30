@@ -8,6 +8,9 @@ const rawReturnUrl = Astro.url.searchParams.get("returnUrl");
 const returnUrl =
   rawReturnUrl && rawReturnUrl.startsWith("/") && !rawReturnUrl.startsWith("//") ? rawReturnUrl : "/dashboard";
 
+const mode = Astro.url.searchParams.get("mode");
+const showVerifyEmailMessage = mode === "verify-email";
+
 const {
   data: { user },
 } = await Astro.locals.supabase.auth.getUser();
@@ -24,6 +27,19 @@ if (user) {
         <h1 class="auth-title">Tabliczki ZTM</h1>
         <p class="auth-subtitle">Zaloguj się do swojego konta</p>
       </header>
+
+      {
+        showVerifyEmailMessage && (
+          <div class="verify-email-message">
+            <span class="theme-icon verify-icon">mail</span>
+            <h2 class="verify-title">Potwierdź swoje konto</h2>
+            <p class="verify-text">
+              Na podany adres email został wysłany link aktywacyjny. Kliknij w link, aby aktywować swoje konto.
+            </p>
+            <p class="verify-hint">Nie otrzymałeś wiadomości? Sprawdź folder spam.</p>
+          </div>
+        )
+      }
 
       <div class="auth-form-wrapper">
         <LoginForm client:load />
@@ -72,6 +88,43 @@ if (user) {
     border: 1px solid var(--theme--accent-color-dim);
   }
 
+  .verify-email-message {
+    padding: calc(var(--theme--spacing) * 4);
+    background-color: var(--theme--bg-color);
+    border: 1px solid var(--theme--accent-color-dim);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(var(--theme--spacing) * 2);
+  }
+
+  .verify-icon {
+    font-size: 48px;
+    color: var(--theme--accent-color);
+  }
+
+  .verify-title {
+    font-size: 1.25rem;
+    font-weight: normal;
+    margin: 0;
+    color: var(--theme--accent-color);
+  }
+
+  .verify-text {
+    margin: 0;
+    color: var(--theme--accent-color);
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .verify-hint {
+    margin: 0;
+    color: var(--theme--accent-color-dim);
+    font-size: 0.875rem;
+    font-style: italic;
+  }
+
   @media (max-width: 640px) {
     .auth-page {
       padding: calc(var(--theme--spacing) * 2);
@@ -83,6 +136,14 @@ if (user) {
 
     .auth-form-wrapper {
       padding: calc(var(--theme--spacing) * 4);
+    }
+
+    .verify-email-message {
+      padding: calc(var(--theme--spacing) * 3);
+    }
+
+    .verify-icon {
+      font-size: 36px;
     }
   }
 </style>

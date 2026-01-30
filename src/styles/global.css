@@ -5,9 +5,9 @@
 /* Font Imports - Optimized Material Symbols
    Used icons: account_circle, add, check, check_circle, close, dark_mode, 
    dashboard_2_edit, delete, delete_forever, departure_board, edit, error, info, 
-   keyboard_arrow_down, keyboard_arrow_up, light_mode, logout, progress_activity, 
-   refresh, tv, visibility, warning (22 total) */
-@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=account_circle,add,check,check_circle,close,dark_mode,dashboard_2_edit,delete,delete_forever,departure_board,edit,error,info,keyboard_arrow_down,keyboard_arrow_up,light_mode,logout,progress_activity,refresh,tv,visibility,warning&display=swap");
+   keyboard_arrow_down, keyboard_arrow_up, light_mode, logout, mail, progress_activity, 
+   refresh, tv, visibility, warning (23 total) */
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=account_circle,add,check,check_circle,close,dark_mode,dashboard_2_edit,delete,delete_forever,departure_board,edit,error,info,keyboard_arrow_down,keyboard_arrow_up,light_mode,logout,mail,progress_activity,refresh,tv,visibility,warning&display=swap");
 
 /* Departure Mono Font */
 @font-face {
