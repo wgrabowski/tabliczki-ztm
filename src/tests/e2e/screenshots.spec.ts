@@ -30,9 +30,9 @@ type Theme = (typeof THEMES)[number];
 const TEST_DATA = {
   sets: {
     names: ["Robota", "Dom", "Oliwa", "Politechnika", "Plaża Jelitkowo", "Plaża Brzeźno"],
-    nameToRename: "Dom", // Which set to rename (by name)
+    nameToRename: "Robota", // Which set to rename (by name)
     nameToDelete: "Plaża Jelitkowo", // Which set to delete (by name)
-    nameToOpenForStops: "Robota", // Which set to open for stops management (by name)
+    nameToOpenForStops: "Praca", // Which set to open for stops management (by name)
     renamedName: "Praca",
   },
   stops: {
@@ -144,6 +144,7 @@ async function runAllScenarios(page: Page, viewport: Viewport, theme: Theme): Pr
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(TEST_DATA.timeouts.medium);
   }
+  await page.waitForTimeout(61000);
 
   // Step 3.7: Screenshot dashboard with full list of 6 sets
   await captureScreenshot(page, viewport, theme, "02-dashboard-04-full-list");
